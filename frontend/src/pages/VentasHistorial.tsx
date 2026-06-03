@@ -475,7 +475,7 @@ export default function VentasHistorial() {
             Acumulado
           </p>
           <p className="num text-3xl text-[var(--color-gold-500)] mt-1.5">
-            {fmt.money(data.reduce((acc, v) => acc + v.Total, 0))}
+            {fmt.money(data.reduce((acc, v) => acc + Number(v.Total ?? 0), 0))}
           </p>
         </div>
       </section>

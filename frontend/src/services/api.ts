@@ -1,19 +1,6 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import type { ApiError } from '@/types/api.types';
-import { useAuthStore } from '@/store/authStore';
-
-const TOKEN_KEY = 'tenebrosa.token';
-
-export const tokenStore = {
-  get: (): string | null => localStorage.getItem(TOKEN_KEY) || useAuthStore.getState().token,
-  set: (token: string): void => {
-    localStorage.setItem(TOKEN_KEY, token);
-  },
-  clear: (): void => {
-    localStorage.removeItem(TOKEN_KEY);
-    useAuthStore.getState().clear();
-  },
-};
+import { tokenStore } from './tokenStore';
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',

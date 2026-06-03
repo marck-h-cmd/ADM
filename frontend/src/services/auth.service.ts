@@ -1,4 +1,5 @@
-import { api, tokenStore } from './api';
+import { api } from './api';
+import { tokenStore } from './tokenStore';
 import type { ApiSuccess } from '@/types/api.types';
 import type { LoginDTO, LoginResponse } from '@/types/venta.types';
 

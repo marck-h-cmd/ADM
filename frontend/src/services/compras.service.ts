@@ -5,10 +5,11 @@ import type { ApiSuccess, PaginatedResponse } from '@/types/api.types';
 
 export const comprasService = {
   async registrar(payload: RegistrarCompraDTO): Promise<string> {
-    const { data } = await unwrap<ApiSuccess<string>>(
-      api.post('/compras', payload),
+    const res = await api.post<{ status: 'success'; message: string }>(
+      '/compras',
+      payload,
     );
-    return data as unknown as string;
+    return res.data.message;
   },
 
   async getAll(

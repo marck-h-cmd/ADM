@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useCallback, useEffect, useState } from 'react';
 import { ventasService } from '@/services/ventas.service';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -73,7 +74,6 @@ export function useVentas() {
   };
 }
 
-
 export function useVentaDetalle(id: string | null) {
   const [detalle, setDetalle] = useState<VentaDetalle | null>(null);
   const [loading, setLoading] = useState(false);
@@ -95,6 +95,11 @@ export function useVentaDetalle(id: string | null) {
       setLoading(false);
     }
   }, [id]);
+
+  // Fetch when id changes
+  useEffect(() => {
+    void fetch();
+  }, [fetch]);
 
   return { detalle, loading, error, refetch: fetch, id };
 }
