@@ -1,17 +1,20 @@
-import { useVentaStore, type CartItem } from '@/store/ventaStore';
+import { useRef } from 'react';
 import { fmt } from '@/utils/formatters';
 import { cn } from '@/utils/helpers';
+import type { DocumentoItem, DocumentoStore } from '@/store/documento';
 
 interface CarritoItemProps {
-  item: CartItem;
+  item: DocumentoItem;
   index: number;
+  useStore: DocumentoStore;
 }
 
-export function CarritoItem({ item, index }: CarritoItemProps) {
-  const updateCantidad = useVentaStore((s) => s.updateCantidad);
-  const removeItem = useVentaStore((s) => s.removeItem);
+export function CarritoItem({ item, index, useStore }: CarritoItemProps) {
+  const updateCantidad = useStore((s) => s.updateCantidad);
+  const removeItem = useStore((s) => s.removeItem);
   const subtotal = item.cantidad * item.precio;
   const sinStock = item.cantidad >= item.stockDisponible;
+  const inputRef = useRef<HTMLInputElement>(null);
 
   return (
     <li
@@ -44,6 +47,7 @@ export function CarritoItem({ item, index }: CarritoItemProps) {
           −
         </button>
         <input
+          ref={inputRef}
           type="number"
           min={1}
           max={item.stockDisponible}
@@ -83,7 +87,14 @@ export function CarritoItem({ item, index }: CarritoItemProps) {
         aria-label="Quitar del carrito"
         title="Quitar"
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        >
           <path d="M6 6l12 12M6 18 18 6" strokeLinecap="round" />
         </svg>
       </button>

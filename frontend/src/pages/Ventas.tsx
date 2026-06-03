@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { useVentaStore, selectTotal, selectSubtotal, selectIgv } from '@/store/ventaStore';
+import { useVentaStore } from '@/store/ventaStore';
+import { selectTotal, selectSubtotal, selectIgv } from '@/store/documento';
 import { ventasService } from '@/services/ventas.service';
 import { useAuth } from '@/hooks/useAuth';
 import { ClienteSelector } from '@/components/ventas/ClienteSelector';
-import { ProductoBuscador } from '@/components/ventas/ProductoBuscador';
-import { CarritoResumen } from '@/components/ventas/CarritoResumen';
+import { ProductoBuscador } from '@/components/documentos/ProductoBuscador';
+import { CarritoResumen } from '@/components/documentos/CarritoResumen';
 import { PagoForm } from '@/components/ventas/PagoForm';
 import { CuotasForm } from '@/components/ventas/CuotasForm';
 import { Button } from '@/components/common/Button';
@@ -103,10 +104,10 @@ export default function Ventas() {
           </div>
 
           <div className="surface p-6">
-            <ProductoBuscador />
+            <ProductoBuscador useStore={useVentaStore} validarStock />
           </div>
 
-          <CarritoResumen />
+          <CarritoResumen useStore={useVentaStore} />
         </div>
 
         {/* RIGHT — recibo */}

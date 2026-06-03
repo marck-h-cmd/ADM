@@ -14,11 +14,11 @@ const items: NavItem[] = [
   { to: '/productos', num: '02', label: 'Productos' },
   { to: '/clientes', num: '03', label: 'Clientes' },
   { to: '/ventas', num: '04', label: 'Ventas' },
-  { to: '/ventas/historial', num: '05', label: 'Historial' },
+  { to: '/ventas/historial', num: '05', label: 'Historial de ventas' },
   { to: '/compras', num: '06', label: 'Compras' },
-  { to: '/kardex', num: '07', label: 'Kardex' },
-  { to: '/reportes', num: '08', label: 'Reportes' },
-  { to: '/configuracion', num: '09', label: 'Configuración' },
+  { to: '/compras/historial', num: '07', label: 'Historial de compras' },
+  { to: '/kardex', num: '08', label: 'Kardex' },
+  { to: '/reportes', num: '09', label: 'Reportes' },
 ];
 
 export function Sidebar() {

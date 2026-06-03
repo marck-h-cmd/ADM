@@ -1,14 +1,26 @@
 import { useEffect, useRef, useState } from 'react';
 import { useProductoSearch } from '@/hooks/useProductos';
-import { useVentaStore } from '@/store/ventaStore';
 import { Spinner } from '@/components/common/Spinner';
 import { fmt } from '@/utils/formatters';
 import { cn } from '@/utils/helpers';
+import type { DocumentoStore } from '@/store/documento';
 import type { Producto } from '@/types/producto.types';
 
-export function ProductoBuscador() {
+interface ProductoBuscadorProps {
+  useStore: DocumentoStore;
+  /**
+   * Si true, los productos sin stock se deshabilitan (caso venta).
+   * En compras siempre se permite agregar.
+   */
+  validarStock?: boolean;
+}
+
+export function ProductoBuscador({
+  useStore,
+  validarStock = true,
+}: ProductoBuscadorProps) {
   const { query, setQuery, results, loading } = useProductoSearch();
-  const addItem = useVentaStore((s) => s.addItem);
+  const addItem = useStore((s) => s.addItem);
   const [open, setOpen] = useState(false);
   const [highlight, setHighlight] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -24,6 +36,7 @@ export function ProductoBuscador() {
   }, []);
 
   function add(p: Producto) {
+    if (validarStock && p.StockAc <= 0) return;
     addItem(
       {
         producto: p.Producto,
@@ -80,7 +93,7 @@ export function ProductoBuscador() {
             } else if (e.key === 'Enter') {
               e.preventDefault();
               const p = results[highlight];
-              if (p && p.StockAc > 0) add(p);
+              if (p) add(p);
             } else if (e.key === 'Escape') {
               setOpen(false);
             }
@@ -109,7 +122,7 @@ export function ProductoBuscador() {
           style={{ animationDuration: '0.2s' }}
         >
           {results.map((p, i) => {
-            const sinStock = p.StockAc <= 0;
+            const sinStock = validarStock && p.StockAc <= 0;
             return (
               <li
                 key={p.Producto}

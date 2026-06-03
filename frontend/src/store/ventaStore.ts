@@ -1,18 +1,10 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import type { DocumentoState, DocumentoItem } from './documento';
 
-export interface CartItem {
-  producto: string;
-  descripcion: string;
-  marca: string;
-  precio: number;
-  cantidad: number;
-  stockDisponible: number;
-  conIgv: boolean;
-}
+export type { DocumentoItem };
 
-interface CartState {
-  items: CartItem[];
+export interface VentaState extends DocumentoState {
   cliente: string | null;
   clienteNombre: string | null;
   formaPago: 'E' | 'T' | 'Y' | 'C';
@@ -22,13 +14,8 @@ interface CartState {
   personal: string;
   fecha: string;
 
-  addItem: (item: Omit<CartItem, 'cantidad'>, cantidad?: number) => void;
-  updateCantidad: (producto: string, cantidad: number) => void;
-  removeItem: (producto: string) => void;
-  clear: () => void;
-
   setCliente: (cliente: string, nombre: string) => void;
-  setFormaPago: (fp: CartState['formaPago']) => void;
+  setFormaPago: (fp: VentaState['formaPago']) => void;
   setCredito: (credito: boolean) => void;
   setCuotas: (cuotas: number) => void;
   setDocumento: (doc: string) => void;
@@ -37,7 +24,7 @@ interface CartState {
 }
 
 const initial = {
-  items: [] as CartItem[],
+  items: [] as DocumentoItem[],
   cliente: null as string | null,
   clienteNombre: null as string | null,
   formaPago: 'E' as const,
@@ -48,7 +35,7 @@ const initial = {
   fecha: new Date().toISOString(),
 };
 
-export const useVentaStore = create<CartState>()(
+export const useVentaStore = create<VentaState>()(
   persist(
     (set, get) => ({
       ...initial,
@@ -113,18 +100,3 @@ export const useVentaStore = create<CartState>()(
     },
   ),
 );
-
-export const selectSubtotal = (items: CartItem[]): number =>
-  items.reduce((acc, it) => acc + it.cantidad * it.precio, 0);
-
-export const selectIgv = (items: CartItem[]): number => {
-  // Para items con IGV incluido, el IGV ya está dentro del precio.
-  // Aproximación: si conIgv=true, precio es con IGV. El IGV extraído = subtotal * (18/118).
-  const totalConIgv = items
-    .filter((i) => i.conIgv)
-    .reduce((acc, it) => acc + it.cantidad * it.precio, 0);
-  return Math.round((totalConIgv * 18) / 118 * 100) / 100;
-};
-
-export const selectTotal = (items: CartItem[]): number =>
-  Math.round((selectSubtotal(items) - selectIgv(items)) * 100) / 100;

@@ -11,15 +11,24 @@ export const comprasService = {
     return data as unknown as string;
   },
 
-  async getAll(page = 1, limit = 20): Promise<PaginatedResponse<CompraRow>> {
+  async getAll(
+    page = 1,
+    limit = 20,
+    fechaInicio?: string,
+    fechaFin?: string,
+  ): Promise<PaginatedResponse<CompraRow>> {
     const { data, pagination } = await unwrap<ApiSuccess<CompraRow[]>>(
-      api.get('/compras', { params: { page, limit } }),
+      api.get('/compras', {
+        params: { page, limit, fechaInicio, fechaFin },
+      }),
     );
     return { data, pagination: pagination! };
   },
 
   async getById(id: string): Promise<CompraDetalle> {
-    const { data } = await unwrap<ApiSuccess<CompraDetalle>>(api.get(`/compras/${id}`));
+    const { data } = await unwrap<ApiSuccess<CompraDetalle>>(
+      api.get(`/compras/${id}`),
+    );
     return data;
   },
 };

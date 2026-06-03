@@ -10,6 +10,7 @@ import ClienteFormPage from '@/pages/ClienteFormPage';
 import Ventas from '@/pages/Ventas';
 import VentasHistorial from '@/pages/VentasHistorial';
 import Compras from '@/pages/Compras';
+import ComprasHistorial from '@/pages/ComprasHistorial';
 import Kardex from '@/pages/Kardex';
 import Reportes from '@/pages/Reportes';
 import Configuracion from '@/pages/Configuracion';
@@ -37,6 +38,7 @@ export default function AppRoutes() {
         <Route path="/ventas" element={<Ventas />} />
         <Route path="/ventas/historial" element={<VentasHistorial />} />
         <Route path="/compras" element={<Compras />} />
+        <Route path="/compras/historial" element={<ComprasHistorial />} />
         <Route path="/kardex" element={<Kardex />} />
         <Route path="/reportes" element={<Reportes />} />
         <Route path="/configuracion" element={<Configuracion />} />

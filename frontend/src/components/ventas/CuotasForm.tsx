@@ -1,4 +1,5 @@
-import { useVentaStore, selectTotal } from '@/store/ventaStore';
+import { useVentaStore } from '@/store/ventaStore';
+import { selectTotal } from '@/store/documento';
 import { fmt } from '@/utils/formatters';
 import { cn } from '@/utils/helpers';
 

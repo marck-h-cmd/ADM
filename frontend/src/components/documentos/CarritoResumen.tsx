@@ -1,9 +1,25 @@
-import { useVentaStore, selectSubtotal, selectIgv, selectTotal } from '@/store/ventaStore';
+import {
+  type DocumentoStore,
+  selectSubtotal,
+  selectIgv,
+  selectTotal,
+} from '@/store/documento';
 import { CarritoItem } from './CarritoItem';
 import { fmt } from '@/utils/formatters';
 
-export function CarritoResumen() {
-  const items = useVentaStore((s) => s.items);
+interface CarritoResumenProps {
+  useStore: DocumentoStore;
+  /**
+   * "total a cobrar" para venta, "total a pagar" para compra.
+   */
+  totalLabel?: string;
+}
+
+export function CarritoResumen({
+  useStore,
+  totalLabel = 'Total a cobrar',
+}: CarritoResumenProps) {
+  const items = useStore((s) => s.items);
   const subtotal = selectSubtotal(items);
   const igv = selectIgv(items);
   const total = selectTotal(items);
@@ -32,7 +48,12 @@ export function CarritoResumen() {
       ) : (
         <ul className="divide-y divide-[rgba(232,230,224,0.06)]">
           {items.map((it, i) => (
-            <CarritoItem key={it.producto} item={it} index={i} />
+            <CarritoItem
+              key={it.producto}
+              item={it}
+              index={i}
+              useStore={useStore}
+            />
           ))}
         </ul>
       )}
@@ -53,7 +74,7 @@ export function CarritoResumen() {
           </div>
           <div className="rule-gold my-3" />
           <div className="flex items-baseline justify-between">
-            <span className="mark text-[0.6rem]">Total a cobrar</span>
+            <span className="mark text-[0.6rem]">{totalLabel}</span>
             <span className="num text-2xl text-[var(--color-gold-500)] tracking-tight">
               {fmt.money(total)}
             </span>
