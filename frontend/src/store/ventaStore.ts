@@ -13,6 +13,19 @@ export interface VentaState extends DocumentoState {
   documento: string;
   personal: string;
   fecha: string;
+  currentUser: string | null;
+  carts: Record<
+    string,
+    {
+      items: DocumentoItem[];
+      cliente: string | null;
+      clienteNombre: string | null;
+      formaPago: VentaState['formaPago'];
+      credito: boolean;
+      cuotas: number;
+      documento: string;
+    }
+  >;
 
   setCliente: (cliente: string, nombre: string) => void;
   setFormaPago: (fp: VentaState['formaPago']) => void;
@@ -21,6 +34,7 @@ export interface VentaState extends DocumentoState {
   setDocumento: (doc: string) => void;
   setPersonal: (per: string) => void;
   setFecha: (f: string) => void;
+  switchUser: (userId: string | null) => void;
 }
 
 const initial = {
@@ -33,6 +47,19 @@ const initial = {
   documento: '',
   personal: '01',
   fecha: new Date().toISOString(),
+  currentUser: null as string | null,
+  carts: {} as Record<
+    string,
+    {
+      items: DocumentoItem[];
+      cliente: string | null;
+      clienteNombre: string | null;
+      formaPago: VentaState['formaPago'];
+      credito: boolean;
+      cuotas: number;
+      documento: string;
+    }
+  >,
 };
 
 export const useVentaStore = create<VentaState>()(
@@ -74,7 +101,7 @@ export const useVentaStore = create<VentaState>()(
       removeItem: (producto) =>
         set({ items: get().items.filter((i) => i.producto !== producto) }),
 
-      clear: () => set({ ...initial, fecha: new Date().toISOString() }),
+      clear: () => set({ ...initial, carts: get().carts, currentUser: get().currentUser, fecha: new Date().toISOString() }),
 
       setCliente: (cliente, nombre) => set({ cliente, clienteNombre: nombre }),
       setFormaPago: (formaPago) => set({ formaPago }),
@@ -83,6 +110,26 @@ export const useVentaStore = create<VentaState>()(
       setDocumento: (documento) => set({ documento }),
       setPersonal: (personal) => set({ personal }),
       setFecha: (fecha) => set({ fecha }),
+
+      switchUser: (newUserId) => {
+        const { currentUser, items, cliente, clienteNombre, formaPago, credito, cuotas, documento, carts } = get();
+        const nextCarts = { ...carts };
+        if (currentUser) {
+          nextCarts[currentUser] = { items, cliente, clienteNombre, formaPago, credito, cuotas, documento };
+        }
+        const nextCart = newUserId ? nextCarts[newUserId] : null;
+        set({
+          currentUser: newUserId,
+          carts: nextCarts,
+          items: nextCart ? nextCart.items : [],
+          cliente: nextCart ? nextCart.cliente : null,
+          clienteNombre: nextCart ? nextCart.clienteNombre : null,
+          formaPago: nextCart ? nextCart.formaPago : 'E',
+          credito: nextCart ? nextCart.credito : false,
+          cuotas: nextCart ? nextCart.cuotas : 1,
+          documento: nextCart ? nextCart.documento : '',
+        });
+      },
     }),
     {
       name: 'tenebrosa.venta',
@@ -96,6 +143,8 @@ export const useVentaStore = create<VentaState>()(
         cuotas: s.cuotas,
         documento: s.documento,
         personal: s.personal,
+        currentUser: s.currentUser,
+        carts: s.carts,
       }),
     },
   ),

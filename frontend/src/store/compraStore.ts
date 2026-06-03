@@ -10,11 +10,14 @@ export interface CompraState extends DocumentoState {
   personal: string;
   documento: string;
   fecha: string;
+  currentUser: string | null;
+  carts: Record<string, { items: DocumentoItem[]; proveedor: string | null; proveedorNombre: string | null; documento: string }>;
 
   setProveedor: (proveedor: string, nombre: string) => void;
   setPersonal: (per: string) => void;
   setDocumento: (doc: string) => void;
   setFecha: (f: string) => void;
+  switchUser: (userId: string | null) => void;
 }
 
 const initial = {
@@ -24,6 +27,8 @@ const initial = {
   personal: '01',
   documento: '',
   fecha: new Date().toISOString(),
+  currentUser: null as string | null,
+  carts: {} as Record<string, { items: DocumentoItem[]; proveedor: string | null; proveedorNombre: string | null; documento: string }>,
 };
 
 export const useCompraStore = create<CompraState>()(
@@ -56,13 +61,30 @@ export const useCompraStore = create<CompraState>()(
       removeItem: (producto) =>
         set({ items: get().items.filter((i) => i.producto !== producto) }),
 
-      clear: () => set({ ...initial, fecha: new Date().toISOString() }),
+      clear: () => set({ ...initial, carts: get().carts, currentUser: get().currentUser, fecha: new Date().toISOString() }),
 
       setProveedor: (proveedor, nombre) =>
         set({ proveedor, proveedorNombre: nombre }),
       setPersonal: (personal) => set({ personal }),
       setDocumento: (documento) => set({ documento }),
       setFecha: (fecha) => set({ fecha }),
+
+      switchUser: (newUserId) => {
+        const { currentUser, items, proveedor, proveedorNombre, documento, carts } = get();
+        const nextCarts = { ...carts };
+        if (currentUser) {
+          nextCarts[currentUser] = { items, proveedor, proveedorNombre, documento };
+        }
+        const nextCart = newUserId ? nextCarts[newUserId] : null;
+        set({
+          currentUser: newUserId,
+          carts: nextCarts,
+          items: nextCart ? nextCart.items : [],
+          proveedor: nextCart ? nextCart.proveedor : null,
+          proveedorNombre: nextCart ? nextCart.proveedorNombre : null,
+          documento: nextCart ? nextCart.documento : '',
+        });
+      },
     }),
     {
       name: 'tenebrosa.compra',
@@ -73,6 +95,8 @@ export const useCompraStore = create<CompraState>()(
         proveedorNombre: s.proveedorNombre,
         personal: s.personal,
         documento: s.documento,
+        currentUser: s.currentUser,
+        carts: s.carts,
       }),
     },
   ),

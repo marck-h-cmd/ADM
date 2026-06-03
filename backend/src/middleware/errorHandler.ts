@@ -41,9 +41,33 @@ export const errorHandler = (
 
   // Error de PostgreSQL - foreign key violada
   if (err.message.includes('violates foreign key constraint')) {
+    const detail = (err as any).detail;
+    let message = 'El registro está siendo utilizado en otra tabla';
+    if (detail && detail.includes('is not present in table')) {
+      const match = detail.match(/Key \((.*?)\)=\((.*?)\) is not present in table "(.*?)"/);
+      if (match) {
+        const [_, key, value, table] = match;
+        let readableTable = table;
+        if (table.toLowerCase() === 'marca') readableTable = 'marcas';
+        else if (table.toLowerCase() === 'cliente') readableTable = 'clientes';
+        else if (table.toLowerCase() === 'personal') readableTable = 'personal';
+        else if (table.toLowerCase() === 'producto') readableTable = 'productos';
+        else if (table.toLowerCase() === 'proveedor') readableTable = 'proveedores';
+        else if (table.toLowerCase() === 'zona') readableTable = 'zonas';
+        
+        message = `El registro de referencia con ${key} '${value}' no existe en la tabla de ${readableTable}`;
+      } else {
+        message = 'El registro de referencia no existe';
+      }
+    } else if (err.message.includes('insert or update')) {
+      message = 'El registro de referencia no existe';
+    } else {
+      message = 'El registro está siendo utilizado en otra tabla y no se puede eliminar';
+    }
+
     return res.status(400).json({
       status: 'fail',
-      message: 'El registro está siendo utilizado en otra tabla',
+      message,
       timestamp: new Date().toISOString()
     });
   }

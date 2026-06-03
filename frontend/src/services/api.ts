@@ -1,12 +1,18 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import type { ApiError } from '@/types/api.types';
+import { useAuthStore } from '@/store/authStore';
 
 const TOKEN_KEY = 'tenebrosa.token';
 
 export const tokenStore = {
-  get: (): string | null => localStorage.getItem(TOKEN_KEY),
-  set: (token: string): void => localStorage.setItem(TOKEN_KEY, token),
-  clear: (): void => localStorage.removeItem(TOKEN_KEY),
+  get: (): string | null => localStorage.getItem(TOKEN_KEY) || useAuthStore.getState().token,
+  set: (token: string): void => {
+    localStorage.setItem(TOKEN_KEY, token);
+  },
+  clear: (): void => {
+    localStorage.removeItem(TOKEN_KEY);
+    useAuthStore.getState().clear();
+  },
 };
 
 export const api = axios.create({
@@ -18,7 +24,12 @@ export const api = axios.create({
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = tokenStore.get();
   if (token) {
-    config.headers.set('Authorization', `Bearer ${token}`);
+    config.headers.Authorization = `Bearer ${token}`;
+    if (config.headers && typeof config.headers.set === 'function') {
+      config.headers.set('Authorization', `Bearer ${token}`);
+    }
+  } else {
+    console.warn(`[API Request] Token missing for request: ${config.method?.toUpperCase()} ${config.url}`);
   }
   return config;
 });

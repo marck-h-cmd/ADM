@@ -14,7 +14,7 @@ import { getErrorMessage } from '@/utils/helpers';
 
 export default function Compras() {
   const { user } = useAuth();
-  const { items, proveedor, proveedorNombre, personal, clear } = useCompraStore();
+  const { items, proveedor, proveedorNombre, clear } = useCompraStore();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -35,7 +35,7 @@ export default function Compras() {
         proveedor: proveedor!,
         documento: docNumero,
         fecha: new Date().toISOString(),
-        personal,
+        personal: user?.id || '01',
         productos: items.map((i) => ({
           producto: i.producto,
           cantidad: i.cantidad,

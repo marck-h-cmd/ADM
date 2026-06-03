@@ -21,7 +21,6 @@ export default function Ventas() {
     formaPago,
     credito,
     cuotas,
-    personal,
     clear,
   } = useVentaStore();
   const [submitting, setSubmitting] = useState(false);
@@ -44,7 +43,7 @@ export default function Ventas() {
         cliente: cliente!,
         documento: docNumero,
         fecha: new Date().toISOString(),
-        personal,
+        personal: user?.id || '01',
         formaPago,
         productos: items.map((i) => ({
           producto: i.producto,
