@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: tenebrosa_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_DB: tenebrosa
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - tenebrosa_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    container_name: tenebrosa_backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: tenebrosa
+      DB_USER: postgres
+      DB_PASSWORD: postgres123
+      JWT_SECRET: ${JWT_SECRET:-mi_secreto_super_seguro_para_jwt_2024}
+      JWT_EXPIRES_IN: 7d
+      CORS_ORIGIN: http://localhost:5173,http://localhost:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - tenebrosa_network
+
+volumes:
+  postgres_data:
+    name: tenebrosa_postgres_data
+
+networks:
+  tenebrosa_network:
+    name: tenebrosa_network
+    driver: bridge
