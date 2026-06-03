@@ -258,52 +258,53 @@ export default function Kardex() {
             className="grid gap-px bg-[rgba(232,230,224,0.08)] md:grid-cols-4 reveal"
             style={{ animationDelay: '120ms' }}
           >
-            <div className="surface p-6">
-              <p className="mark text-[0.55rem] text-[var(--color-ink-600)]">
+            <div className="surface p-6 min-w-0">
+              <p className="mark text-[0.55rem] text-[var(--color-ink-600)] truncate" title="Stock actual">
                 Stock actual
               </p>
-              <p className="num text-3xl text-[var(--color-ink-900)] mt-1.5">
+              <p className="num text-3xl text-[var(--color-ink-900)] mt-1.5 truncate" title={String(stats.stockActual)}>
                 {stats.stockActual}
               </p>
               <p className="mark text-[0.5rem] text-[var(--color-ink-600)] mt-1">
                 {producto.UniMed}
               </p>
             </div>
-            <div className="surface p-6">
-              <p className="mark text-[0.55rem] text-[var(--color-ink-600)]">
+            <div className="surface p-6 min-w-0">
+              <p className="mark text-[0.55rem] text-[var(--color-ink-600)] truncate" title="Ingresos del período">
                 Ingresos del período
               </p>
-              <p className="num text-3xl text-[var(--color-jade-500)] mt-1.5">
+              <p className="num text-3xl text-[var(--color-jade-500)] mt-1.5 truncate" title={`+${stats.totalIngresos}`}>
                 +{stats.totalIngresos}
               </p>
               <p className="mark text-[0.5rem] text-[var(--color-ink-600)] mt-1">
                 unidades sumadas
               </p>
             </div>
-            <div className="surface p-6">
-              <p className="mark text-[0.55rem] text-[var(--color-ink-600)]">
+            <div className="surface p-6 min-w-0">
+              <p className="mark text-[0.55rem] text-[var(--color-ink-600)] truncate" title="Salidas del período">
                 Salidas del período
               </p>
-              <p className="num text-3xl text-[var(--color-cinnabar-500)] mt-1.5">
+              <p className="num text-3xl text-[var(--color-cinnabar-500)] mt-1.5 truncate" title={`−${stats.totalSalidas}`}>
                 −{stats.totalSalidas}
               </p>
               <p className="mark text-[0.5rem] text-[var(--color-ink-600)] mt-1">
                 unidades retiradas
               </p>
             </div>
-            <div className="surface p-6">
-              <p className="mark text-[0.55rem] text-[var(--color-ink-600)]">
+            <div className="surface p-6 min-w-0">
+              <p className="mark text-[0.55rem] text-[var(--color-ink-600)] truncate" title="Variación neta">
                 Variación neta
               </p>
               <p
                 className={cn(
-                  'num text-3xl mt-1.5 tracking-tight',
+                  'num text-3xl mt-1.5 tracking-tight truncate',
                   stats.variacion > 0
                     ? 'text-[var(--color-jade-500)]'
                     : stats.variacion < 0
                       ? 'text-[var(--color-cinnabar-500)]'
                       : 'text-[var(--color-ink-900)]',
                 )}
+                title={`${stats.variacion > 0 ? '+' : ''}${stats.variacion}`}
               >
                 {stats.variacion > 0 ? '+' : ''}
                 {stats.variacion}

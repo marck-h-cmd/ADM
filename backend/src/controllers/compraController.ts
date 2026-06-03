@@ -16,8 +16,10 @@ export const compraController = {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 20;
+      const fechaInicio = req.query.fechaInicio as string;
+      const fechaFin = req.query.fechaFin as string;
       
-      const result = await compraService.getAll(page, limit);
+      const result = await compraService.getAll(page, limit, fechaInicio, fechaFin);
       
       res.json({
         status: 'success',

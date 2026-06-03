@@ -80,24 +80,26 @@ export function CreditGauge({
   tope: number;
   size?: 'sm' | 'md';
 }) {
-  const pct = tope > 0 ? Math.min(100, Math.max(0, (saldo / tope) * 100)) : 0;
+  const nSaldo = Number(saldo) || 0;
+  const nTope = Number(tope) || 0;
+  const pct = nTope > 0 ? Math.min(100, Math.max(0, (nSaldo / nTope) * 100)) : 0;
   const tones = {
     healthy: 'bg-[var(--color-jade-500)]',
     caution: 'bg-[var(--color-gold-500)]',
     overflow: 'bg-[var(--color-cinnabar-500)]',
     none: 'bg-[var(--color-ink-700)]/30',
   } as const;
-  const tone = tope === 0 ? 'none' : pct < 50 ? 'healthy' : pct < 80 ? 'caution' : 'overflow';
-  const disponible = Math.max(0, tope - saldo);
+  const tone = nTope === 0 ? 'none' : pct < 50 ? 'healthy' : pct < 80 ? 'caution' : 'overflow';
+  const disponible = Math.max(0, nTope - nSaldo);
 
   return (
     <div className="space-y-1.5 min-w-[140px]">
       <div className="flex items-baseline justify-between">
         <p className="num text-sm text-[var(--color-ink-900)]">
-          {fmt.money(saldo)}
+          {fmt.money(nSaldo)}
         </p>
         <p className="mark text-[0.5rem] text-[var(--color-ink-600)]">
-          {tope > 0 ? fmt.percent(pct) : '—'}
+          {nTope > 0 ? fmt.percent(pct) : '—'}
         </p>
       </div>
       <div
@@ -113,10 +115,10 @@ export function CreditGauge({
       </div>
       <div className="flex items-baseline justify-between">
         <p className="mark text-[0.45rem] text-[var(--color-ink-600)]">
-          {tope > 0 ? `libre ${fmt.money(disponible)}` : 'sin línea'}
+          {nTope > 0 ? `libre ${fmt.money(disponible)}` : 'sin línea'}
         </p>
         <p className="mark text-[0.45rem] text-[var(--color-ink-600)]">
-          tope {fmt.money(tope)}
+          tope {fmt.money(nTope)}
         </p>
       </div>
     </div>

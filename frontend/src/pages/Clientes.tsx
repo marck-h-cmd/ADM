@@ -52,7 +52,7 @@ export default function Clientes() {
 
   // Aggregate KPIs (in-page)
   const conCredito = data.filter((c) => c.credito).length;
-  const saldoTotal = data.reduce((acc, c) => acc + c.Saldo, 0);
+  const saldoTotal = data.reduce((acc, c) => acc + (Number(c.Saldo) || 0), 0);
   const vip = data.filter((c) => c.TipoCliente === 'V').length;
 
   const columns: Column<Cliente>[] = [
