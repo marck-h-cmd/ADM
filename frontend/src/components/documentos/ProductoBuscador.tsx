@@ -13,11 +13,17 @@ interface ProductoBuscadorProps {
    * En compras siempre se permite agregar.
    */
   validarStock?: boolean;
+  /**
+   * Si true, al agregar el producto se usa `PrecCosto` en lugar de `PrecVenta`.
+   * Útil para el flujo de compras donde el precio es el costo.
+   */
+  precioCompra?: boolean;
 }
 
 export function ProductoBuscador({
   useStore,
   validarStock = true,
+  precioCompra = false,
 }: ProductoBuscadorProps) {
   const { query, setQuery, results, loading } = useProductoSearch();
   const addItem = useStore((s) => s.addItem);
@@ -42,7 +48,7 @@ export function ProductoBuscador({
         producto: p.Producto,
         descripcion: p.Descripcion,
         marca: p.MarcaDesc ?? p.Marca,
-        precio: p.PrecVenta,
+        precio: precioCompra ? (p.PrecCosto ?? p.PrecVenta) : p.PrecVenta,
         stockDisponible: p.StockAc,
         conIgv: p.ConIgv,
       },

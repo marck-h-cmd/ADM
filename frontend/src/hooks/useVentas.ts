@@ -1,5 +1,7 @@
-import { useCallback, useState } from 'react';
+/* eslint-disable react-hooks/set-state-in-effect */
+import { useCallback, useEffect, useState } from 'react';
 import { ventasService } from '@/services/ventas.service';
+import { useDebounce } from '@/hooks/useDebounce';
 import type { VentaDetalle } from '@/types/documento.types';
 import type { VentaRow } from '@/types/venta.types';
 import type { PaginatedResponse } from '@/types/api.types';
@@ -18,6 +20,7 @@ export function useVentas() {
     fechaInicio: '',
     fechaFin: '',
   });
+  const debouncedFiltros = useDebounce(filtros, 300);
   const [data, setData] = useState<VentaRow[]>([]);
   const [total, setTotal] = useState(0);
   const [pages, setPages] = useState(0);
@@ -47,9 +50,13 @@ export function useVentas() {
     [],
   );
 
+  useEffect(() => {
+    void fetch(page, debouncedFiltros);
+  }, [fetch, page, debouncedFiltros]);
+
   const refresh = useCallback(
-    () => fetch(page, filtros),
-    [fetch, page, filtros],
+    () => fetch(page, debouncedFiltros),
+    [fetch, page, debouncedFiltros],
   );
 
   return {

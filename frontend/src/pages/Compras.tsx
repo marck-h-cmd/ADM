@@ -79,6 +79,7 @@ export default function Compras() {
             <ProductoBuscador
               useStore={useCompraStore}
               validarStock={false}
+              precioCompra
             />
           </div>
 
