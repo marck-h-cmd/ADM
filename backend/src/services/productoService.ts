@@ -1,5 +1,6 @@
 import { query } from '../config/database';
 import { Producto } from '../types';
+import { AppError } from '../middleware/errorHandler';
 
 export const productoService = {
   async getAll(page: number = 1, limit: number = 20, search: string = ''): Promise<{ rows: Producto[]; total: number }> {
@@ -62,6 +63,13 @@ export const productoService = {
   },
 
   async create(data: Partial<Producto>): Promise<Producto> {
+    if (!data.Producto || data.Producto.length > 4) {
+      throw new AppError('El código de producto debe tener máximo 4 caracteres', 400);
+    }
+    if (!data.Marca || data.Marca.length > 2) {
+      throw new AppError('El código de marca debe tener máximo 2 caracteres', 400);
+    }
+
     const result = await query<Producto>(
       `INSERT INTO PRODUCTO ("Producto", "Marca", "Descripcion", "StockAc", "StockMax", "StockMin", "PrecVenta", "PrecCosto", "Peso", "ConIgv", "UniMed")
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
@@ -73,10 +81,16 @@ export const productoService = {
   },
 
   async update(productoId: string, data: Partial<Producto>): Promise<Producto | null> {
+    if (productoId.length > 4) {
+      throw new AppError('El código de producto debe tener máximo 4 caracteres', 400);
+    }
+    if (data.Marca !== undefined && data.Marca && data.Marca.length > 2) {
+      throw new AppError('El código de marca debe tener máximo 2 caracteres', 400);
+    }
+
     const fields = [];
     const values = [];
     let index = 1;
-
     if (data.Descripcion !== undefined) {
       fields.push(`"Descripcion" = $${index++}`);
       values.push(data.Descripcion);

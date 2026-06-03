@@ -99,8 +99,8 @@ export function ClienteForm({
   function validate(): boolean {
     const e: Partial<Record<keyof FormState, string>> = {};
     if (mode === 'create') {
-      if (!required(form.Cliente) || !maxLen(9)(form.Cliente))
-        e.Cliente = 'Identificador de 1-9 caracteres';
+      if (!required(form.Cliente) || !maxLen(4)(form.Cliente))
+        e.Cliente = 'Identificador de 1-4 caracteres';
       if (!required(form.Zona) || !maxLen(2)(form.Zona))
         e.Zona = 'Código de zona de 1-2 caracteres';
     }
@@ -177,8 +177,8 @@ export function ClienteForm({
             <Input
               value={form.Cliente}
               onChange={(e) => set('Cliente', e.target.value)}
-              placeholder="CL001"
-              maxLength={9}
+              placeholder="CL01"
+              maxLength={4}
               disabled={mode === 'edit'}
               className="num uppercase tracking-wider"
             />

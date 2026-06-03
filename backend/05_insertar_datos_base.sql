@@ -154,9 +154,9 @@ INSERT INTO PERSONAL (
 )
 VALUES
     ('01', 'JUAN PEREZ RAMOS', '9876543210', TRUE, 2500.00, '01',
-     'juan.perez@tenebrosa.com', '$2a$10$qKiMCsS2UuLSKM6XJIktUO0O1/q/WxFAHSt9WxNekvYIGTSha/5xW', CURRENT_DATE),
+     'juan@tenebrosa.com', '$2a$10$qKiMCsS2UuLSKM6XJIktUO0O1/q/WxFAHSt9WxNekvYIGTSha/5xW', CURRENT_DATE),
     ('02', 'MARIA LOPEZ GARCIA', '9876543211', TRUE, 2600.00, '02',
-     'maria.lopez@tenebrosa.com', '$2a$10$qKiMCsS2UuLSKM6XJIktUO0O1/q/WxFAHSt9WxNekvYIGTSha/5xW', CURRENT_DATE),
+     'maria@tenebrosa.com', '$2a$10$qKiMCsS2UuLSKM6XJIktUO0O1/q/WxFAHSt9WxNekvYIGTSha/5xW', CURRENT_DATE),
     ('03', 'CARLOS RODRIGUEZ SMITH', '9876543212', TRUE, 2550.00, '03',
      'carlos.rodriguez@tenebrosa.com', '$2a$10$qKiMCsS2UuLSKM6XJIktUO0O1/q/WxFAHSt9WxNekvYIGTSha/5xW', CURRENT_DATE),
     ('04', 'SANDRA MARTINEZ TORRES', '9876543213', TRUE, 2400.00, '01',

@@ -121,7 +121,7 @@ export const reporteService = {
         c."estado",
         d."Cliente", 
         cl."Nombre" as "ClienteNombre",
-        cl."Telefono",
+        NULL as "Telefono",
         c."feVence"::date - CURRENT_DATE as "DiasVencimiento"
       FROM CRONOGRAMA c
       LEFT JOIN DOCUMENTO d ON d."Documento" = c."Documento" AND d."TipoDoc" = c."TipoDoc"

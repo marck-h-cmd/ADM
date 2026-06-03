@@ -1,8 +1,30 @@
 import { query, transaction } from '../config/database';
 import { RegistrarVentaDTO } from '../types';
+import { AppError } from '../middleware/errorHandler';
 
 export const ventaService = {
   async registrar(data: RegistrarVentaDTO): Promise<string> {
+    if (!data.cliente || data.cliente.length > 4) {
+      throw new AppError('El código de cliente debe tener máximo 4 caracteres', 400);
+    }
+    if (!data.documento || data.documento.length > 9) {
+      throw new AppError('El número de documento debe tener máximo 9 caracteres', 400);
+    }
+    if (!data.personal || data.personal.length > 2) {
+      throw new AppError('El código de personal debe tener máximo 2 caracteres', 400);
+    }
+    if (!data.formaPago || data.formaPago.length > 1) {
+      throw new AppError('La forma de pago debe tener máximo 1 carácter', 400);
+    }
+    if (!data.productos || !Array.isArray(data.productos) || data.productos.length === 0) {
+      throw new AppError('La venta debe incluir al menos un producto', 400);
+    }
+    for (const prod of data.productos) {
+      if (!prod.producto || prod.producto.length > 4) {
+        throw new AppError(`El código de producto ${prod.producto} debe tener máximo 4 caracteres`, 400);
+      }
+    }
+
     return await transaction(async (client) => {
       const productosJson = JSON.stringify(data.productos);
       

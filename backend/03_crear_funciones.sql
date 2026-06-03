@@ -568,5 +568,140 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ============================================
+-- FUNCIONES ADICIONALES DE TRANSACCIONES
+-- ============================================
+
+-- 1. Registrar Venta
+CREATE OR REPLACE FUNCTION Registrar_Venta(
+    p_cliente CHAR(4),
+    p_documento CHAR(9),
+    p_fecha TIMESTAMP,
+    p_personal CHAR(2),
+    p_forma_pago CHAR(1),
+    p_productos_json TEXT,
+    p_credito BOOLEAN,
+    p_cuotas INTEGER
+)
+RETURNS VARCHAR AS $$
+DECLARE
+    v_tipo_doc CHAR(1);
+    v_rec RECORD;
+    v_total NUMERIC(9,2) := 0;
+    v_igv_rate NUMERIC(9,2);
+    v_producto CHAR(4);
+    v_cantidad NUMERIC(9,2);
+    v_precio NUMERIC(9,2);
+    v_igv_item NUMERIC(9,2);
+BEGIN
+    -- Determinar TipoDoc: 'F' para crédito, 'B' para contado
+    IF p_credito THEN
+        v_tipo_doc := 'F';
+    ELSE
+        v_tipo_doc := 'B';
+    END IF;
+
+    -- Obtener tasa de IGV activa
+    SELECT COALESCE("Igv", 18) INTO v_igv_rate FROM PARAMETRO WHERE "activo" = TRUE LIMIT 1;
+    IF v_igv_rate IS NULL THEN
+        v_igv_rate := 18.00;
+    END IF;
+
+    -- Insertar Cabecera del Documento
+    -- pagado se inicializará en 0 para crédito, o el total calculado para contado
+    INSERT INTO DOCUMENTO ("Documento", "TipoDoc", "Cliente", "Fecha", "Estado", "Personal", "FormaPago", "pagado", "IdTienda")
+    VALUES (p_documento, v_tipo_doc, p_cliente, p_fecha, 'P', p_personal, p_forma_pago, 0, '01');
+
+    -- Iterar sobre el JSON de productos
+    -- Estructura esperada: [{"producto":"PR01","cantidad":2,"precio":3500}]
+    FOR v_rec IN SELECT * FROM json_to_recordset(p_productos_json::json) AS x(producto CHAR(4), cantidad NUMERIC(9,2), precio NUMERIC(9,2))
+    LOOP
+        v_producto := v_rec.producto;
+        v_cantidad := v_rec.cantidad;
+        v_precio := v_rec.precio;
+
+        -- Calcular IGV por item
+        v_igv_item := (v_precio * v_cantidad) * (v_igv_rate / 100.0);
+        v_total := v_total + (v_precio * v_cantidad);
+
+        -- Insertar en DETADOC (esto activará los triggers trg_validar_stock y trg_actualizar_stock)
+        INSERT INTO DETADOC ("Documento", "TipoDoc", "Producto", "Cantidad", "Igv", "PrecUnit")
+        VALUES (p_documento, v_tipo_doc, v_producto, v_cantidad, v_igv_item, v_precio);
+    END LOOP;
+
+    -- Si es al contado (no crédito), se marca como totalmente pagado y estado cancelado 'C'
+    IF NOT p_credito THEN
+        UPDATE DOCUMENTO 
+        SET "pagado" = v_total, "Estado" = 'C' 
+        WHERE "Documento" = p_documento AND "TipoDoc" = v_tipo_doc;
+    ELSE
+        -- Si es crédito, se genera el cronograma de pagos
+        PERFORM Ven_GenerarCronograma(p_documento, v_tipo_doc, p_cuotas::SMALLINT);
+    END IF;
+
+    RETURN 'Venta registrada con éxito';
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE EXCEPTION 'Error al registrar venta: %', SQLERRM;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 2. Registrar Compra
+CREATE OR REPLACE FUNCTION Registrar_Compra(
+    p_proveedor CHAR(4),
+    p_documento CHAR(9),
+    p_fecha TIMESTAMP,
+    p_personal CHAR(2),
+    p_productos_json TEXT
+)
+RETURNS VARCHAR AS $$
+DECLARE
+    v_tipo_doc CHAR(1) := 'C';
+    v_rec RECORD;
+    v_total NUMERIC(9,2) := 0;
+    v_igv_rate NUMERIC(9,2);
+    v_producto CHAR(4);
+    v_cantidad NUMERIC(9,2);
+    v_precio NUMERIC(9,2);
+    v_igv_item NUMERIC(9,2);
+BEGIN
+    -- Obtener tasa de IGV activa
+    SELECT COALESCE("Igv", 18) INTO v_igv_rate FROM PARAMETRO WHERE "activo" = TRUE LIMIT 1;
+    IF v_igv_rate IS NULL THEN
+        v_igv_rate := 18.00;
+    END IF;
+
+    -- Insertar Cabecera de Compra
+    INSERT INTO DOCUMENTO ("Documento", "TipoDoc", "Proveedor", "Fecha", "Estado", "Personal", "pagado", "IdTienda")
+    VALUES (p_documento, v_tipo_doc, p_proveedor, p_fecha, 'C', p_personal, 0, '01');
+
+    -- Iterar sobre los productos
+    FOR v_rec IN SELECT * FROM json_to_recordset(p_productos_json::json) AS x(producto CHAR(4), cantidad NUMERIC(9,2), precio NUMERIC(9,2))
+    LOOP
+        v_producto := v_rec.producto;
+        v_cantidad := v_rec.cantidad;
+        v_precio := v_rec.precio;
+
+        -- Calcular IGV por item
+        v_igv_item := (v_precio * v_cantidad) * (v_igv_rate / 100.0);
+        v_total := v_total + (v_precio * v_cantidad);
+
+        -- Insertar en DETADOC (esto incrementará el stock del producto a través de trg_actualizar_stock)
+        INSERT INTO DETADOC ("Documento", "TipoDoc", "Producto", "Cantidad", "Igv", "PrecUnit")
+        VALUES (p_documento, v_tipo_doc, v_producto, v_cantidad, v_igv_item, v_precio);
+    END LOOP;
+
+    -- Actualizar el total pagado de la compra
+    UPDATE DOCUMENTO 
+    SET "pagado" = v_total 
+    WHERE "Documento" = p_documento AND "TipoDoc" = v_tipo_doc;
+
+    RETURN 'Compra registrada con éxito';
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE EXCEPTION 'Error al registrar compra: %', SQLERRM;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================
 -- FIN DE CREACIÓN DE FUNCIONES
 -- ============================================

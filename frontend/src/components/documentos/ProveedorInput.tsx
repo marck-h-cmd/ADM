@@ -90,7 +90,7 @@ export function ProveedorInput() {
             onChange={(e) => setProveedor(e.target.value.toUpperCase(), proveedorNombre ?? '')}
             onFocus={() => setOpen(true)}
             placeholder="PR01"
-            maxLength={6}
+            maxLength={4}
             className={cn(
               'w-full bg-[var(--color-ink-100)] text-[var(--color-ink-900)]',
               'border border-[rgba(232,230,224,0.08)] px-3.5 h-10',

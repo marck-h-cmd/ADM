@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Table, type Column } from '@/components/common/Table';
 import { Pagination } from '@/components/common/Pagination';
@@ -115,14 +115,14 @@ export default function Clientes() {
           <Link
             to={`/clientes/${v.Cliente}`}
             className="mark text-[0.55rem] text-[var(--color-ink-700)] hover:text-[var(--color-gold-500)] transition-colors"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e: React.MouseEvent<HTMLAnchorElement>) => e.stopPropagation()}
           >
             Editar ↗
           </Link>
           <button
             type="button"
             className="mark text-[0.55rem] text-[var(--color-ink-600)] hover:text-[var(--color-cinnabar-500)] transition-colors"
-            onClick={(e) => {
+            onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
               e.stopPropagation();
               setBorrar(v);
             }}

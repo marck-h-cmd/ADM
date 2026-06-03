@@ -1,9 +1,7 @@
-version: '3.8'
-
 services:
   frontend:
     build:
-      context: .
+      context: ./frontend
       dockerfile: Dockerfile
     container_name: tenebrosa-frontend
     ports:
@@ -26,7 +24,7 @@ services:
 
   backend:
     build:
-      context: ../backend
+      context: ./backend
       dockerfile: Dockerfile
     container_name: tenebrosa-backend
     ports:
@@ -59,7 +57,7 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./frontend/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - tenebrosa-network
     restart: unless-stopped

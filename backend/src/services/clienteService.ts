@@ -1,5 +1,6 @@
 import { query } from '../config/database';
 import { Cliente } from '../types';
+import { AppError } from '../middleware/errorHandler';
 
 export const clienteService = {
   async getAll(page: number = 1, limit: number = 20, search: string = ''): Promise<{ rows: Cliente[]; total: number }> {
@@ -66,6 +67,25 @@ export const clienteService = {
   },
 
   async create(data: Partial<Cliente>): Promise<Cliente> {
+    if (!data.Cliente || data.Cliente.length > 4) {
+      throw new AppError('El código de cliente debe tener máximo 4 caracteres', 400);
+    }
+    if (!data.Zona || data.Zona.length > 2) {
+      throw new AppError('El código de zona debe tener máximo 2 caracteres', 400);
+    }
+    if (data.Ruc && data.Ruc.length > 11) {
+      throw new AppError('El RUC debe tener máximo 11 caracteres', 400);
+    }
+    if (data.TipoCliente && data.TipoCliente.length > 1) {
+      throw new AppError('El tipo de cliente debe tener máximo 1 carácter', 400);
+    }
+    if (data.idRepresentante && String(data.idRepresentante).length > 2) {
+      throw new AppError('El código de representante/personal debe tener máximo 2 caracteres', 400);
+    }
+    if (data.genero && data.genero.length > 1) {
+      throw new AppError('El género debe tener máximo 1 carácter', 400);
+    }
+
     const result = await query<Cliente>(
       `INSERT INTO CLIENTE ("Cliente", "Zona", "Nombre", "Direccion", "Ruc", "credito", "topeCredito", "TipoCliente", "Calificacion", "idRepresentante", "genero")
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
@@ -78,6 +98,22 @@ export const clienteService = {
   },
 
   async update(clienteId: string, data: Partial<Cliente>): Promise<Cliente | null> {
+    if (clienteId.length > 4) {
+      throw new AppError('El código de cliente debe tener máximo 4 caracteres', 400);
+    }
+    if (data.Zona !== undefined && data.Zona && data.Zona.length > 2) {
+      throw new AppError('El código de zona debe tener máximo 2 caracteres', 400);
+    }
+    if (data.Ruc !== undefined && data.Ruc && data.Ruc.length > 11) {
+      throw new AppError('El RUC debe tener máximo 11 caracteres', 400);
+    }
+    if (data.TipoCliente !== undefined && data.TipoCliente && data.TipoCliente.length > 1) {
+      throw new AppError('El tipo de cliente debe tener máximo 1 carácter', 400);
+    }
+    if (data.Calificacion !== undefined && data.Calificacion && data.Calificacion.length > 1) {
+      throw new AppError('La calificación debe tener máximo 1 carácter', 400);
+    }
+
     const fields = [];
     const values = [];
     let index = 1;
