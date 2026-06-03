@@ -1,12 +1,14 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useCallback, useEffect, useState } from 'react';
 import { productosService } from '@/services/productos.service';
+import { useDebounce } from '@/hooks/useDebounce';
+import { getErrorMessage } from '@/utils/helpers';
 import type {
   CreateProductoDTO,
   Producto,
   ProductoStockCritico,
   UpdateProductoDTO,
 } from '@/types/producto.types';
-import { getErrorMessage } from '@/utils/helpers';
 
 interface State {
   data: Producto[];
@@ -123,4 +125,63 @@ export function useProductoStockCritico() {
   }, []);
 
   return { data, loading, error };
+}
+
+export function useProductoSearch() {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<Producto[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const debounced = useDebounce(query, 250);
+
+  useEffect(() => {
+    if (!debounced || debounced.length < 2) {
+      setResults([]);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    productosService
+      .search(debounced)
+      .then((data) => {
+        if (!cancelled) setResults(data);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(getErrorMessage(e));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [debounced]);
+
+  return { query, setQuery, results, loading, error, clear: () => setQuery('') };
+}
+
+export function useProductoDetail(id: string | null) {
+  const [producto, setProducto] = useState<Producto | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const fetch = useCallback(async () => {
+    if (!id) {
+      setProducto(null);
+      return;
+    }
+    setLoading(true);
+    try {
+      const p = await productosService.getById(id);
+      setProducto(p);
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    void fetch();
+  }, [fetch]);
+
+  return { producto, loading, refresh: fetch };
 }
