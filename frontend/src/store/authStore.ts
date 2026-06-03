@@ -1,8 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { LoginUser } from '@/types/venta.types';
-import { useCompraStore } from './compraStore';
-import { useVentaStore } from './ventaStore';
+import { tokenStore } from '@/services/tokenStore';
 
 interface AuthState {
   token: string | null;
@@ -14,21 +13,16 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       token: null,
       user: null,
       isAuthenticated: false,
       setSession: (token, user) => {
+        tokenStore.set(token);
         set({ token, user, isAuthenticated: true });
-        useCompraStore.getState().switchUser(user.id);
-        useVentaStore.getState().switchUser(user.id);
       },
       clear: () => {
-        const currentUser = get().user?.id;
-        if (currentUser) {
-          useCompraStore.getState().switchUser(null);
-          useVentaStore.getState().switchUser(null);
-        }
+        tokenStore.clear();
         set({ token: null, user: null, isAuthenticated: false });
       },
     }),
@@ -39,10 +33,7 @@ export const useAuthStore = create<AuthState>()(
       onRehydrateStorage: () => (state) => {
         if (state?.token) {
           state.isAuthenticated = true;
-          if (state.user?.id) {
-            useCompraStore.getState().switchUser(state.user.id);
-            useVentaStore.getState().switchUser(state.user.id);
-          }
+          tokenStore.set(state.token);
         }
       },
     },

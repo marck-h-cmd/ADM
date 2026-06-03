@@ -8,7 +8,7 @@ import { ProductoBuscador } from '@/components/documentos/ProductoBuscador';
 import { CarritoResumen } from '@/components/documentos/CarritoResumen';
 import { StockImpacto } from '@/components/documentos/StockImpacto';
 import { Button } from '@/components/common/Button';
-import { Alert } from '@/components/common/Alert';
+import { useToast } from '@/hooks/useToast';
 import { fmt } from '@/utils/formatters';
 import { getErrorMessage } from '@/utils/helpers';
 
@@ -16,8 +16,8 @@ export default function Compras() {
   const { user } = useAuth();
   const { items, proveedor, proveedorNombre, clear } = useCompraStore();
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  
+  const toast = useToast();
 
   const subtotal = selectSubtotal(items);
   const igv = selectIgv(items);
@@ -27,8 +27,6 @@ export default function Compras() {
   async function handleRegistrar() {
     if (!canSubmit) return;
     setSubmitting(true);
-    setError(null);
-    setSuccess(null);
     try {
       const docNumero = `C${Date.now().toString().slice(-8)}`;
       const mensaje = await comprasService.registrar({
@@ -42,9 +40,11 @@ export default function Compras() {
           precio: i.precio,
         })),
       });
-      setSuccess(mensaje);
+      clear();
+      toast.success(mensaje, { duration: 4000 });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (e) {
-      setError(getErrorMessage(e));
+      toast.error(getErrorMessage(e), { duration: 6000 });
     } finally {
       setSubmitting(false);
     }
@@ -52,8 +52,6 @@ export default function Compras() {
 
   function handleNuevaCompra() {
     clear();
-    setSuccess(null);
-    setError(null);
   }
 
   return (
@@ -69,20 +67,7 @@ export default function Compras() {
         </p>
       </header>
 
-      {success && (
-        <Alert tone="jade">
-          <div className="flex items-center justify-between gap-4">
-            <span>{success}</span>
-            <button
-              onClick={handleNuevaCompra}
-              className="mark text-[0.55rem] text-[var(--color-jade-500)] hover:text-[var(--color-ink-900)] underline underline-offset-4"
-            >
-              Iniciar nueva ↻
-            </button>
-          </div>
-        </Alert>
-      )}
-      {error && <Alert tone="cinnabar">{error}</Alert>}
+      {/* Notifications shown via toast */}
 
       <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-8">
         <div className="space-y-6 reveal" style={{ animationDelay: '60ms' }}>

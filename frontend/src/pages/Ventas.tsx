@@ -9,7 +9,7 @@ import { CarritoResumen } from '@/components/documentos/CarritoResumen';
 import { PagoForm } from '@/components/ventas/PagoForm';
 import { CuotasForm } from '@/components/ventas/CuotasForm';
 import { Button } from '@/components/common/Button';
-import { Alert } from '@/components/common/Alert';
+import { useToast } from '@/hooks/useToast';
 import { fmt } from '@/utils/formatters';
 import { getErrorMessage } from '@/utils/helpers';
 
@@ -24,8 +24,8 @@ export default function Ventas() {
     clear,
   } = useVentaStore();
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  
+  const toast = useToast();
 
   const subtotal = selectSubtotal(items);
   const igv = selectIgv(items);
@@ -35,8 +35,6 @@ export default function Ventas() {
   async function handleRegistrar() {
     if (!canSubmit) return;
     setSubmitting(true);
-    setError(null);
-    setSuccess(null);
     try {
       const docNumero = `B${Date.now().toString().slice(-8)}`;
       const mensaje = await ventasService.registrar({
@@ -53,9 +51,11 @@ export default function Ventas() {
         credito,
         cuotas: credito ? cuotas : undefined,
       });
-      setSuccess(mensaje);
+      clear();
+      toast.success(mensaje, { duration: 4000 });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (e) {
-      setError(getErrorMessage(e));
+      toast.error(getErrorMessage(e), { duration: 6000 });
     } finally {
       setSubmitting(false);
     }
@@ -63,8 +63,6 @@ export default function Ventas() {
 
   function handleNuevaVenta() {
     clear();
-    setSuccess(null);
-    setError(null);
   }
 
   return (
@@ -80,20 +78,7 @@ export default function Ventas() {
         </p>
       </header>
 
-      {success && (
-        <Alert tone="jade">
-          <div className="flex items-center justify-between gap-4">
-            <span>{success}</span>
-            <button
-              onClick={handleNuevaVenta}
-              className="mark text-[0.55rem] text-[var(--color-jade-500)] hover:text-[var(--color-ink-900)] underline underline-offset-4"
-            >
-              Iniciar nueva ↻
-            </button>
-          </div>
-        </Alert>
-      )}
-      {error && <Alert tone="cinnabar">{error}</Alert>}
+      {/* Notifications shown via toast */}
 
       <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-8">
         {/* LEFT — selección */}

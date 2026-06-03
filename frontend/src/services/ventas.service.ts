@@ -8,10 +8,11 @@ import type { ApiSuccess, PaginatedResponse } from '@/types/api.types';
 
 export const ventasService = {
   async registrar(payload: RegistrarVentaDTO): Promise<string> {
-    const { data } = await unwrap<ApiSuccess<string>>(
-      api.post('/ventas', payload),
+    const res = await api.post<{ status: 'success'; message: string }>(
+      '/ventas',
+      payload,
     );
-    return data as unknown as string;
+    return res.data.message;
   },
 
   async getAll(
