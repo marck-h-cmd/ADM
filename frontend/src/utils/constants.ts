@@ -19,6 +19,11 @@ export const TIPO_CLIENTE_LABELS: Record<string, string> = {
   R: 'Regular',
 };
 
+export const GENERO_LABELS: Record<string, string> = {
+  M: 'Masculino',
+  F: 'Femenino',
+};
+
 export const FORMA_PAGO_LABELS: Record<string, string> = {
   E: 'Efectivo',
   T: 'Tarjeta',

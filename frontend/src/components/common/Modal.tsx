@@ -9,6 +9,7 @@ interface ModalProps {
   mark?: string;
   children: ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  footer?: ReactNode;
 }
 
 const sizes = {
@@ -18,7 +19,7 @@ const sizes = {
   xl: 'max-w-5xl',
 };
 
-export function Modal({ open, onClose, title, mark, children, size = 'md' }: ModalProps) {
+export function Modal({ open, onClose, title, mark, children, size = 'md', footer }: ModalProps) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
@@ -69,6 +70,11 @@ export function Modal({ open, onClose, title, mark, children, size = 'md' }: Mod
           </header>
         )}
         <div className="px-7 py-6">{children}</div>
+        {footer && (
+          <footer className="px-7 py-5 hairline-t bg-[rgba(232,230,224,0.02)]">
+            {footer}
+          </footer>
+        )}
       </div>
     </div>
   );
