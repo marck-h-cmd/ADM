@@ -1,6 +1,8 @@
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useUiStore } from '@/store/uiStore';
 import { Button } from '@/components/common/Button';
+import { cn } from '@/utils/helpers';
 
 function routeTitle(path: string): { mark: string; title: string } {
   if (path === '/') return { mark: '§ 01', title: 'Panel de control' };
@@ -25,6 +27,7 @@ function routeTitle(path: string): { mark: string; title: string } {
 export function Header() {
   const { user, logout } = useAuth();
   const { pathname } = useLocation();
+  const toggleSidebar = useUiStore((s) => s.toggleSidebar);
   const t = routeTitle(pathname);
 
   const initials = (user?.nombre ?? '?')
@@ -34,13 +37,33 @@ export function Header() {
     .join('');
 
   return (
-    <header className="hairline-b bg-[var(--color-ink-50)]/60 backdrop-blur-sm">
-      <div className="flex items-center justify-between gap-6 px-8 lg:px-12 py-5">
-        <div className="flex items-baseline gap-3">
-          <span className="mark">{t.mark}</span>
-          <h1 className="display text-2xl text-[var(--color-ink-900)]">
-            {t.title}
-          </h1>
+    <header className="hairline-b bg-[var(--color-ink-50)]/60 backdrop-blur-sm sticky top-0 z-20">
+      <div className="flex items-center justify-between gap-4 md:gap-6 px-5 md:px-8 lg:px-12 py-5">
+        <div className="flex items-center gap-3 md:gap-4 min-w-0">
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            aria-label="Abrir menú de navegación"
+            className={cn(
+              'lg:hidden h-9 w-9 grid place-items-center hairline text-[var(--color-ink-800)]',
+              'hover:text-[var(--color-gold-500)] hover:border-[var(--color-gold-500)] transition-colors shrink-0',
+            )}
+          >
+            <svg viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
+              <path
+                d="M2 4h12M2 8h12M2 12h12"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
+          <div className="flex items-baseline gap-3 min-w-0">
+            <span className="mark shrink-0">{t.mark}</span>
+            <h1 className="display text-xl md:text-2xl text-[var(--color-ink-900)] truncate">
+              {t.title}
+            </h1>
+          </div>
         </div>
 
         <div className="flex items-center gap-5">
