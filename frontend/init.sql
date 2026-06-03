@@ -880,13 +880,13 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION Kardex_Consulta(
     p_idproducto CHAR(4),
-    p_fecha_inicio DATE DEFAULT NULL,
-    p_fecha_fin DATE DEFAULT NULL
+    p_fecha_inicio TIMESTAMP DEFAULT NULL,
+    p_fecha_fin TIMESTAMP DEFAULT NULL
 )
 RETURNS TABLE(
     documento TEXT,
     tipomov TEXT,
-    fecha DATE,
+    fecha TIMESTAMP,
     cantidad NUMERIC(9,2),
     stock NUMERIC(9,2)
 ) AS $$
@@ -894,24 +894,24 @@ DECLARE
     v_stock NUMERIC(9,2) := 0;
     v_doc CHAR(9);
     v_tdoc CHAR(1);
-    v_fecha DATE;
+    v_fecha TIMESTAMP;
     v_cantidad NUMERIC(9,2);
     v_signo INTEGER;
     cur CURSOR FOR 
-        SELECT d."Documento", d."TipoDoc", d."Fecha"::DATE, dd."Cantidad", COALESCE(td."Signo", 1)
+        SELECT d."Documento", d."TipoDoc", d."Fecha", dd."Cantidad", COALESCE(td."Signo", 1)
         FROM DOCUMENTO d 
         INNER JOIN DETADOC dd ON d."Documento" = dd."Documento" AND d."TipoDoc" = dd."TipoDoc"
         LEFT JOIN TIPODOC td ON td."TipoDoc" = d."TipoDoc"
         WHERE dd."Producto" = p_idproducto
             AND (p_fecha_inicio IS NULL OR d."Fecha" >= p_fecha_inicio)
             AND (p_fecha_fin IS NULL OR d."Fecha" <= p_fecha_fin)
-        ORDER BY d."Fecha" ASC;
+        ORDER BY d."Fecha" ASC, COALESCE(td."Signo", 1) DESC;
 BEGIN
     CREATE TEMP TABLE temp_kardex AS
     SELECT 
         d."Documento",
         d."TipoDoc",
-        d."Fecha"::DATE as Fecha,
+        d."Fecha" as Fecha,
         dd."Cantidad",
         COALESCE(td."Signo", 1) as Signo,
         0::NUMERIC(9,2) as Stock
@@ -921,7 +921,7 @@ BEGIN
     WHERE dd."Producto" = p_idproducto
         AND (p_fecha_inicio IS NULL OR d."Fecha" >= p_fecha_inicio)
         AND (p_fecha_fin IS NULL OR d."Fecha" <= p_fecha_fin)
-    ORDER BY d."Fecha" ASC;
+    ORDER BY d."Fecha" ASC, COALESCE(td."Signo", 1) DESC;
 
     OPEN cur;
     LOOP
@@ -934,8 +934,8 @@ BEGIN
 
     RETURN QUERY
     SELECT 
-        k."Documento" || '-' || k."TipoDoc",
-        CASE WHEN k.Signo = 1 THEN 'INGRESO' ELSE 'SALIDA' END,
+        (k."Documento" || '-' || k."TipoDoc")::TEXT,
+        CASE WHEN k.Signo = 1 THEN 'INGRESO'::TEXT ELSE 'SALIDA'::TEXT END,
         k.Fecha,
         k."Cantidad",
         k.Stock
