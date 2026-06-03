@@ -23,7 +23,7 @@ const items: NavItem[] = [
 
 export function Sidebar() {
   return (
-    <aside className="hidden lg:flex w-64 shrink-0 flex-col bg-[var(--color-ink-100)] hairline-r">
+    <aside className="hidden lg:flex sticky top-0 h-screen w-64 shrink-0 flex-col bg-[var(--color-ink-100)] hairline-r">
       <div className="px-7 py-8 hairline-b">
         <div className="flex items-baseline gap-2">
           <span className="display text-3xl text-[var(--color-ink-900)] tracking-tight">
@@ -35,7 +35,7 @@ export function Sidebar() {
         </p>
       </div>
 
-      <nav className="flex-1 px-3 py-6 overflow-y-auto">
+      <nav className="flex-1 min-h-0 px-3 py-6 overflow-y-auto">
         <p className="mark text-[0.55rem] px-4 mb-3 text-[var(--color-ink-600)]">
           ¶ Navegación
         </p>
@@ -77,7 +77,7 @@ export function Sidebar() {
         </ul>
       </nav>
 
-      <div className="px-7 py-5 hairline-t">
+      <div className="px-7 py-5 hairline-t shrink-0">
         <p className="mark text-[0.55rem] text-[var(--color-ink-600)]">№ v1.0.0</p>
         <p className="text-[0.65rem] text-[var(--color-ink-600)] mt-1.5 leading-relaxed">
           Control de inventario
