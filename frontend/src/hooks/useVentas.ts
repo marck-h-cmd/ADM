@@ -50,14 +50,15 @@ export function useVentas() {
     [],
   );
 
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedFiltros]);
+
+  // Fetch data whenever page or debounced filters change
   useEffect(() => {
     void fetch(page, debouncedFiltros);
   }, [fetch, page, debouncedFiltros]);
-
-  const refresh = useCallback(
-    () => fetch(page, debouncedFiltros),
-    [fetch, page, debouncedFiltros],
-  );
 
   return {
     data,
@@ -69,7 +70,7 @@ export function useVentas() {
     setFiltros,
     loading,
     error,
-    refresh,
+    refresh: () => fetch(page, debouncedFiltros),
   };
 }
 
@@ -94,6 +95,11 @@ export function useVentaDetalle(id: string | null) {
       setLoading(false);
     }
   }, [id]);
+
+  // Fetch when id changes
+  useEffect(() => {
+    void fetch();
+  }, [fetch]);
 
   return { detalle, loading, error, refetch: fetch, id };
 }
