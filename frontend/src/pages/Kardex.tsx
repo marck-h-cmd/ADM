@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { useKardexProducto, type FiltrosKardex, type TipoMovFilter } from '@/hooks/useKardex';
+import { useKardexProducto, type TipoMovFilter } from '@/hooks/useKardex';
+import { useProductos } from '@/hooks/useProductos';
 import { ProductoKardexSelector } from '@/components/kardex/ProductoKardexSelector';
 import { MovementBadge, MovementCantidad } from '@/components/kardex/MovementBadge';
 import { StockSparkline } from '@/components/kardex/StockSparkline';
 import { Table, type Column } from '@/components/common/Table';
+import { Pagination } from '@/components/common/Pagination';
 import { Spinner } from '@/components/common/Spinner';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
@@ -54,15 +56,92 @@ function TipoFilterButtons({
 
 export default function Kardex() {
   const [producto, setProducto] = useState<Producto | null>(null);
-  const [filtros, setFiltros] = useState<FiltrosKardex>({
-    fechaInicio: '',
-    fechaFin: '',
-    tipo: 'TODOS',
-  });
-
-  const { movimientos, loading, error, stats } = useKardexProducto(
+  const { data: productos, pages: prodPages, page: prodPage, setPage: setProdPage, loading: loadingProd, total: prodTotal } = useProductos(1, 10);
+  
+  const { movimientos, loading, error, stats, filtros, setFiltros } = useKardexProducto(
     producto?.Producto ?? null,
   );
+
+  const prodColumns: Column<Producto>[] = [
+    {
+      key: 'producto',
+      header: 'Código (SKU)',
+      width: '120px',
+      render: (p) => (
+        <span className="num font-bold text-sm text-[var(--color-ink-900)]">
+          {p.Producto}
+        </span>
+      ),
+    },
+    {
+      key: 'descripcion',
+      header: 'Descripción',
+      render: (p) => (
+        <div>
+          <p className="text-sm font-medium text-[var(--color-ink-900)]">
+            {p.Descripcion}
+          </p>
+          <p className="mark text-[0.5rem] text-[var(--color-ink-600)]">
+            Marca: {p.Marca}
+          </p>
+        </div>
+      ),
+    },
+    {
+      key: 'stock',
+      header: 'Stock Actual',
+      align: 'right',
+      width: '120px',
+      render: (p) => (
+        <span className={cn(
+          "num text-sm font-semibold",
+          p.StockAc <= p.StockMin ? "text-[var(--color-cinnabar-500)]" : "text-[var(--color-ink-900)]"
+        )}>
+          {p.StockAc} {p.UniMed}
+        </span>
+      ),
+    },
+    {
+      key: 'stockMin',
+      header: 'Stock Mínimo',
+      align: 'right',
+      width: '120px',
+      render: (p) => (
+        <span className="num text-sm text-[var(--color-ink-600)]">
+          {p.StockMin}
+        </span>
+      ),
+    },
+    {
+      key: 'precio',
+      header: 'Precio Venta',
+      align: 'right',
+      width: '120px',
+      render: (p) => (
+        <span className="num text-sm text-[var(--color-gold-500)]">
+          {fmt.money(p.PrecVenta)}
+        </span>
+      ),
+    },
+    {
+      key: 'accion',
+      header: '',
+      align: 'right',
+      width: '120px',
+      render: (p) => (
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={(e) => {
+            e.stopPropagation();
+            setProducto(p);
+          }}
+        >
+          Ver Kardex ↗
+        </Button>
+      ),
+    },
+  ];
 
   function clearFiltros() {
     setFiltros({ fechaInicio: '', fechaFin: '', tipo: 'TODOS' });
@@ -368,19 +447,41 @@ export default function Kardex() {
         </>
       )}
 
-      {!producto && !loading && (
-        <section className="surface p-16 text-center reveal" style={{ animationDelay: '180ms' }}>
-          <p className="mark text-[0.6rem] text-[var(--color-ink-600)]">
-            § Esperando selección
-          </p>
-          <p className="display text-2xl text-[var(--color-ink-700)] mt-3 max-w-md mx-auto">
-            Busque un SKU arriba para abrir su libro de movimientos.
-          </p>
-          <p className="text-sm text-[var(--color-ink-600)] mt-2 max-w-md mx-auto leading-relaxed">
-            El kardex muestra cada ingreso y salida con la cantidad
-            movimentada, el documento que la origina y el stock resultante
-            tras cada operación.
-          </p>
+      {!producto && (
+        <section className="space-y-6 reveal" style={{ animationDelay: '180ms' }}>
+          <header className="flex items-baseline justify-between">
+            <p className="mark text-[0.55rem]">§ Selección de productos</p>
+            <p className="mark text-[0.5rem] text-[var(--color-ink-600)]">
+              {prodTotal} productos en total
+            </p>
+          </header>
+
+          <div className="surface overflow-hidden">
+            {loadingProd && productos.length === 0 ? (
+              <div className="py-24 text-center">
+                <Spinner label="cargando catálogo de productos" />
+              </div>
+            ) : (
+              <Table
+                columns={prodColumns}
+                rows={productos}
+                rowKey={(p) => p.Producto}
+                onRowClick={(p) => setProducto(p)}
+                empty={
+                  <div className="space-y-2 py-16 text-center">
+                    <p className="mark text-[0.6rem] text-[var(--color-ink-600)]">
+                      Sin productos
+                    </p>
+                    <p className="display text-2xl text-[var(--color-ink-800)]">
+                      No se encontraron productos en el sistema
+                    </p>
+                  </div>
+                }
+              />
+            )}
+          </div>
+
+          <Pagination page={prodPage} pages={Math.max(1, prodPages)} onChange={setProdPage} />
         </section>
       )}
     </div>
