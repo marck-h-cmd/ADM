@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useVentas, useVentaDetalle, docId } from '@/hooks/useVentas';
 import { Table, type Column } from '@/components/common/Table';
 import { Pagination } from '@/components/common/Pagination';
@@ -289,10 +289,6 @@ export default function VentasHistorial() {
   } = useVentas();
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
-
-  useEffect(() => {
-    setPage(1);
-  }, [filtros, setPage]);
 
   function clearFiltros() {
     setFiltros({ fechaInicio: '', fechaFin: '' });

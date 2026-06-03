@@ -55,11 +55,11 @@ export const ventaService = {
     
     if (fechaInicio) {
       queryText += ` AND d."Fecha" >= $${paramIndex++}`;
-      params.push(fechaInicio);
+      params.push(fechaInicio.length === 10 ? `${fechaInicio}T00:00:00` : fechaInicio);
     }
     if (fechaFin) {
       queryText += ` AND d."Fecha" <= $${paramIndex++}`;
-      params.push(fechaFin);
+      params.push(fechaFin.length === 10 ? `${fechaFin}T23:59:59.999` : fechaFin);
     }
     if (search) {
       queryText += ` AND (c."Nombre" ILIKE $${paramIndex++} OR d."Documento" ILIKE $${paramIndex++})`;
@@ -74,9 +74,23 @@ export const ventaService = {
     
     const result = await query(queryText, params);
     
-    // Contar total
-    let countQuery = `SELECT COUNT(DISTINCT d."Documento" || d."TipoDoc") as count FROM DOCUMENTO d WHERE d."TipoDoc" IN ('B', 'F')`;
-    const countResult = await query(countQuery);
+    // Contar total con los mismos filtros (sin limit/offset)
+    let countQuery = `SELECT COUNT(DISTINCT d."Documento" || d."TipoDoc") as count FROM DOCUMENTO d LEFT JOIN CLIENTE c ON c."Cliente" = d."Cliente" WHERE d."TipoDoc" IN ('B', 'F')`;
+    const countParams: any[] = [];
+    let countParamIndex = 1;
+    if (fechaInicio) {
+      countQuery += ` AND d."Fecha" >= $${countParamIndex++}`;
+      countParams.push(fechaInicio.length === 10 ? `${fechaInicio}T00:00:00` : fechaInicio);
+    }
+    if (fechaFin) {
+      countQuery += ` AND d."Fecha" <= $${countParamIndex++}`;
+      countParams.push(fechaFin.length === 10 ? `${fechaFin}T23:59:59.999` : fechaFin);
+    }
+    if (search) {
+      countQuery += ` AND (c."Nombre" ILIKE $${countParamIndex++} OR d."Documento" ILIKE $${countParamIndex++})`;
+      countParams.push(`%${search}%`, `%${search}%`);
+    }
+    const countResult = await query(countQuery, countParams);
     
     return {
       rows: result.rows,

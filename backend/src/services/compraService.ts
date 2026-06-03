@@ -52,11 +52,11 @@ export const compraService = {
     
     if (fechaInicio) {
       queryText += ` AND d."Fecha" >= $${paramIndex++}`;
-      params.push(fechaInicio);
+      params.push(fechaInicio.length === 10 ? `${fechaInicio}T00:00:00` : fechaInicio);
     }
     if (fechaFin) {
       queryText += ` AND d."Fecha" <= $${paramIndex++}`;
-      params.push(fechaFin);
+      params.push(fechaFin.length === 10 ? `${fechaFin}T23:59:59.999` : fechaFin);
     }
     
     queryText += ` GROUP BY d."Documento", d."TipoDoc", d."Fecha", d."Proveedor", pr."RazonSocial", d."Personal", d."pagado"
@@ -67,7 +67,19 @@ export const compraService = {
     
     const result = await query(queryText, params);
     
-    const countResult = await query(`SELECT COUNT(*) FROM DOCUMENTO WHERE "TipoDoc" = 'C'`);
+    // Contar total con los mismos filtros (sin limit/offset)
+    let countQuery = `SELECT COUNT(DISTINCT d."Documento" || d."TipoDoc") as count FROM DOCUMENTO d WHERE d."TipoDoc" = 'C'`;
+    const countParams: any[] = [];
+    let countParamIndex = 1;
+    if (fechaInicio) {
+      countQuery += ` AND d."Fecha" >= $${countParamIndex++}`;
+      countParams.push(fechaInicio.length === 10 ? `${fechaInicio}T00:00:00` : fechaInicio);
+    }
+    if (fechaFin) {
+      countQuery += ` AND d."Fecha" <= $${countParamIndex++}`;
+      countParams.push(fechaFin.length === 10 ? `${fechaFin}T23:59:59.999` : fechaFin);
+    }
+    const countResult = await query(countQuery, countParams);
     
     return {
       rows: result.rows,
