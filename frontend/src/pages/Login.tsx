@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useAuthStore } from '@/store/authStore';
+import { useToast } from '@/hooks/useToast';
 import { Field, Input } from '@/components/common/Input';
 import { Button } from '@/components/common/Button';
 import { Alert } from '@/components/common/Alert';
@@ -14,6 +16,7 @@ export default function Login() {
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const toast = useToast();
   const from = (location.state as LocationState | null)?.from?.pathname ?? '/';
 
   const [username, setUsername] = useState('');
@@ -35,6 +38,11 @@ export default function Login() {
       setError(result.error);
       return;
     }
+    const name = useAuthStore.getState().user?.nombre?.split(' ')[0] ?? '';
+    toast.success(
+      'Sesión iniciada',
+      { description: name ? `Bienvenido de vuelta, ${name}.` : undefined },
+    );
     navigate(from, { replace: true });
   }
 

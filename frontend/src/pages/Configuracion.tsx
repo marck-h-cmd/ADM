@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/useToast';
 import { usePreferencesStore, type DensidadUI, type FormatoFecha, type FormatoMoneda } from '@/store/preferencesStore';
 import { Field, Input, Select } from '@/components/common/Input';
 import { Button } from '@/components/common/Button';
@@ -154,6 +155,7 @@ function PasswordForm() {
 export default function Configuracion() {
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
   const prefs = usePreferencesStore();
 
   const [loggingOut, setLoggingOut] = useState(false);
@@ -162,6 +164,7 @@ export default function Configuracion() {
     setLoggingOut(true);
     try {
       await logout();
+      toast.info('Sesión cerrada', { description: 'Has salido del sistema correctamente.' });
       navigate('/login', { replace: true });
     } finally {
       setLoggingOut(false);
