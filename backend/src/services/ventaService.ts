@@ -94,7 +94,7 @@ export const ventaService = {
     
     return {
       rows: result.rows,
-      total: parseInt(countResult.rows[0].count)
+      total: Number.parseInt(countResult.rows[0].count)
     };
   },
 

@@ -5,9 +5,12 @@ import { AppError } from '../middleware/errorHandler';
 export const clienteController = {
   async getAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 20;
-      const search = (req.query.search as string) || '';
+      const parseQueryParam = (value: any): string | undefined =>
+        Array.isArray(value) ? value[0] : (typeof value === 'string' ? value : undefined);
+
+      const page = Number.parseInt(parseQueryParam(req.query.page) ?? '1', 10) || 1;
+      const limit = Number.parseInt(parseQueryParam(req.query.limit) ?? '20', 10) || 20;
+      const search = parseQueryParam(req.query.search)?.trim() || '';
       
       const result = await clienteService.getAll(page, limit, search);
       

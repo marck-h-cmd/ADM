@@ -36,6 +36,8 @@ export const compraService = {
 
   async getAll(page: number = 1, limit: number = 20, fechaInicio?: string, fechaFin?: string): Promise<{ rows: any[]; total: number }> {
     const offset = (page - 1) * limit;
+    const inicio = fechaInicio?.trim() || undefined;
+    const fin = fechaFin?.trim() || undefined;
     
     let queryText = `
       SELECT d."Documento", d."TipoDoc", d."Fecha", d."Proveedor", 
@@ -52,13 +54,13 @@ export const compraService = {
     const params: any[] = [];
     let paramIndex = 1;
     
-    if (fechaInicio) {
+    if (inicio) {
       queryText += ` AND d."Fecha" >= $${paramIndex++}`;
-      params.push(fechaInicio.length === 10 ? `${fechaInicio}T00:00:00` : fechaInicio);
+      params.push(inicio.length === 10 ? `${inicio}T00:00:00` : inicio);
     }
-    if (fechaFin) {
+    if (fin) {
       queryText += ` AND d."Fecha" <= $${paramIndex++}`;
-      params.push(fechaFin.length === 10 ? `${fechaFin}T23:59:59.999` : fechaFin);
+      params.push(fin.length === 10 ? `${fin}T23:59:59.999` : fin);
     }
     
     queryText += ` GROUP BY d."Documento", d."TipoDoc", d."Fecha", d."Proveedor", pr."RazonSocial", d."Personal", d."pagado", d."DocRefer"
@@ -85,7 +87,7 @@ export const compraService = {
     
     return {
       rows: result.rows,
-      total: parseInt(countResult.rows[0].count)
+      total: Number.parseInt(countResult.rows[0].count)
     };
   },
 
@@ -133,7 +135,7 @@ export const compraService = {
     
     return {
       rows: result.rows,
-      total: parseInt(countResult.rows[0].count)
+      total: Number.parseInt(countResult.rows[0].count)
     };
   }
 };

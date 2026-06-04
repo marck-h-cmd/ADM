@@ -13,7 +13,9 @@ export const dashboardController = {
 
   async getVentasPorMes(req: Request, res: Response, next: NextFunction) {
     try {
-      const anio = req.query.anio ? parseInt(req.query.anio as string) : undefined;
+      const parseQueryParam = (value: any): string | undefined =>
+        Array.isArray(value) ? value[0] : (typeof value === 'string' ? value : undefined);
+      const anio = parseQueryParam(req.query.anio) ? Number.parseInt(parseQueryParam(req.query.anio)!, 10) : undefined;
       const ventas = await dashboardService.getVentasPorMes(anio);
       res.json({ status: 'success', data: ventas });
     } catch (error) {
@@ -23,7 +25,9 @@ export const dashboardController = {
 
   async getVentasPorDia(req: Request, res: Response, next: NextFunction) {
     try {
-      const limit = parseInt(req.query.limit as string) || 7;
+      const parseQueryParam = (value: any): string | undefined =>
+        Array.isArray(value) ? value[0] : (typeof value === 'string' ? value : undefined);
+      const limit = Number.parseInt(parseQueryParam(req.query.limit) ?? '7', 10) || 7;
       const ventas = await dashboardService.getVentasPorDia(limit);
       res.json({ status: 'success', data: ventas });
     } catch (error) {
@@ -33,7 +37,9 @@ export const dashboardController = {
 
   async getTopVendedores(req: Request, res: Response, next: NextFunction) {
     try {
-      const limit = parseInt(req.query.limit as string) || 5;
+      const parseQueryParam = (value: any): string | undefined =>
+        Array.isArray(value) ? value[0] : (typeof value === 'string' ? value : undefined);
+      const limit = Number.parseInt(parseQueryParam(req.query.limit) ?? '5', 10) || 5;
       const vendedores = await dashboardService.getTopVendedores(limit);
       res.json({ status: 'success', data: vendedores });
     } catch (error) {

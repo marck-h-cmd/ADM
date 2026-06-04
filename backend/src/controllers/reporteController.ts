@@ -44,7 +44,9 @@ export const reporteController = {
 
   async getRotacion(req: Request, res: Response, next: NextFunction) {
     try {
-      const anio = parseInt(req.query.anio as string) || new Date().getFullYear();
+      const parseQueryParam = (value: any): string | undefined =>
+        Array.isArray(value) ? value[0] : (typeof value === 'string' ? value : undefined);
+      const anio = parseQueryParam(req.query.anio) ? Number.parseInt(parseQueryParam(req.query.anio)!, 10) : new Date().getFullYear();
       const rotacion = await reporteService.getRotacion(anio);
       res.json({ status: 'success', data: rotacion });
     } catch (error) {

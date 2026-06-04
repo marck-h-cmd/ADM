@@ -14,12 +14,16 @@ export const ventaController = {
 
   async getAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 20;
-      const fechaInicio = req.query.fechaInicio as string;
-      const fechaFin = req.query.fechaFin as string;
+      const parseQueryParam = (value: any): string | undefined =>
+        Array.isArray(value) ? value[0] : (typeof value === 'string' ? value : undefined);
+
+      const page = Number.parseInt(parseQueryParam(req.query.page) ?? '1', 10) || 1;
+      const limit = Number.parseInt(parseQueryParam(req.query.limit) ?? '20', 10) || 20;
+      const fechaInicio = parseQueryParam(req.query.fechaInicio)?.trim() || undefined;
+      const fechaFin = parseQueryParam(req.query.fechaFin)?.trim() || undefined;
+      const search = parseQueryParam(req.query.search)?.trim() || undefined;
       
-      const result = await ventaService.getAll(page, limit, fechaInicio, fechaFin);
+      const result = await ventaService.getAll(page, limit, fechaInicio, fechaFin, search);
       
       res.json({
         status: 'success',

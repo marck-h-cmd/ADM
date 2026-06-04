@@ -5,9 +5,12 @@ import { AppError } from '../middleware/errorHandler';
 export const productoController = {
   async getAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 20;
-      const search = (req.query.search as string) || '';
+      const parseQueryParam = (value: any): string | undefined =>
+        Array.isArray(value) ? value[0] : (typeof value === 'string' ? value : undefined);
+
+      const page = Number.parseInt(parseQueryParam(req.query.page) ?? '1', 10) || 1;
+      const limit = Number.parseInt(parseQueryParam(req.query.limit) ?? '20', 10) || 20;
+      const search = parseQueryParam(req.query.search)?.trim() || '';
       
       const result = await productoService.getAll(page, limit, search);
       
@@ -52,7 +55,9 @@ export const productoController = {
 
   async getTop(req: Request, res: Response, next: NextFunction) {
     try {
-      const limit = parseInt(req.query.limit as string) || 10;
+      const parseQueryParam = (value: any): string | undefined =>
+        Array.isArray(value) ? value[0] : (typeof value === 'string' ? value : undefined);
+      const limit = Number.parseInt(parseQueryParam(req.query.limit) ?? '10', 10) || 10;
       const productos = await productoService.getTop(limit);
       res.json({ status: 'success', data: productos });
     } catch (error) {

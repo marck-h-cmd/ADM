@@ -48,8 +48,10 @@ export const kardexController = {
 
   async getRotacion(req: Request, res: Response, next: NextFunction) {
     try {
-      const anio = parseInt(req.query.anio as string) || new Date().getFullYear();
-      const mes = req.query.mes ? parseInt(req.query.mes as string) : undefined;
+      const parseQueryParam = (value: any): string | undefined =>
+        Array.isArray(value) ? value[0] : (typeof value === 'string' ? value : undefined);
+      const anio = parseQueryParam(req.query.anio) ? Number.parseInt(parseQueryParam(req.query.anio)!, 10) : new Date().getFullYear();
+      const mes = parseQueryParam(req.query.mes) ? Number.parseInt(parseQueryParam(req.query.mes)!, 10) : undefined;
       
       const rotacion = await kardexService.getRotacion(anio, mes);
       res.json({ status: 'success', data: rotacion });
