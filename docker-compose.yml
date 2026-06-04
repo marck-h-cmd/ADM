@@ -3,9 +3,9 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: tenebrosa-frontend
+    container_name: tenebrosa-frontend-pg2
     ports:
-      - "8080:80"
+      - "8082:80"
       - "8443:443"
     environment:
       - NODE_ENV=production
@@ -26,12 +26,12 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: tenebrosa-backend
+    container_name: tenebrosa-backend-pg2
     ports:
-      - "3000:3000"
+      - "3002:3000"
     environment:
       - NODE_ENV=production
-      - PORT=3000
+      - PORT=3002
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_NAME=tenebrosa
@@ -39,7 +39,7 @@ services:
       - DB_PASSWORD=postgres
       - JWT_SECRET=${JWT_SECRET:-mi_secreto_super_seguro_para_jwt_2024}
       - JWT_EXPIRES_IN=7d
-      - CORS_ORIGIN=http://localhost:8080,http://localhost:3000
+      - CORS_ORIGIN=http://localhost:8082,http://localhost:3002
     depends_on:
       - postgres
     networks:
@@ -48,13 +48,13 @@ services:
 
   postgres:
     image: postgres:16-alpine
-    container_name: tenebrosa-postgres
+    container_name: tenebrosa-postgres-pg2
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=tenebrosa
     ports:
-      - "5433:5432"
+      - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./frontend/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -69,12 +69,12 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4
-    container_name: tenebrosa-pgadmin
+    container_name: tenebrosa-pgadmin2
     environment:
       - PGADMIN_DEFAULT_EMAIL=admin@admin.com
       - PGADMIN_DEFAULT_PASSWORD=admin
     ports:
-      - "5050:80"
+      - "5052:80"
     depends_on:
       - postgres
     networks:

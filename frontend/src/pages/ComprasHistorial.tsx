@@ -276,9 +276,19 @@ export default function ComprasHistorial() {
       header: 'Unidades',
       align: 'right',
       width: '110px',
-      render: () => (
-        <p className="num text-sm text-[var(--color-ink-600)]">
-          —
+      render: (v) => (
+        <p className="num text-sm text-[var(--color-ink-700)]">
+          {fmt.number(Number(v.Cantidad ?? 0))}
+        </p>
+      ),
+    },
+    {
+      key: 'referencia',
+      header: 'Referencia',
+      width: '170px',
+      render: (v) => (
+        <p className="text-sm text-[var(--color-ink-900)]">
+          {v.Referencia ?? '—'}
         </p>
       ),
     },

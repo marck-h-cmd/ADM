@@ -71,4 +71,6 @@ export interface CompraRow {
   Personal: string | null;
   pagado: number;
   Total: number;
+  Cantidad?: number;
+  Referencia?: string | null;
 }

@@ -40,7 +40,9 @@ export const compraService = {
     let queryText = `
       SELECT d."Documento", d."TipoDoc", d."Fecha", d."Proveedor", 
              pr."RazonSocial" as "ProveedorNombre", d."Personal", d."pagado",
-             COALESCE(SUM(dd."Cantidad" * dd."PrecUnit"), 0) as "Total"
+             COALESCE(SUM(dd."Cantidad" * dd."PrecUnit"), 0) as "Total",
+             COALESCE(SUM(dd."Cantidad"), 0) as "Cantidad",
+             d."DocRefer" as "Referencia"
       FROM DOCUMENTO d
       LEFT JOIN PROVEEDOR pr ON pr."Proveedor" = d."Proveedor"
       LEFT JOIN DETADOC dd ON dd."Documento" = d."Documento" AND dd."TipoDoc" = d."TipoDoc"
@@ -59,7 +61,7 @@ export const compraService = {
       params.push(fechaFin.length === 10 ? `${fechaFin}T23:59:59.999` : fechaFin);
     }
     
-    queryText += ` GROUP BY d."Documento", d."TipoDoc", d."Fecha", d."Proveedor", pr."RazonSocial", d."Personal", d."pagado"
+    queryText += ` GROUP BY d."Documento", d."TipoDoc", d."Fecha", d."Proveedor", pr."RazonSocial", d."Personal", d."pagado", d."DocRefer"
                    ORDER BY d."Fecha" DESC
                    LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
     
