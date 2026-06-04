@@ -13,6 +13,7 @@ import { fmt } from '@/utils/formatters';
 import { cn, isoDate } from '@/utils/helpers';
 import type { KardexItem } from '@/types/kardex.types';
 import type { Producto } from '@/types/producto.types';
+import { exportKardexPDF, exportKardexExcel } from '@/utils/export';
 
 const TIPOS: Array<{ key: TipoMovFilter; label: string }> = [
   { key: 'TODOS', label: 'Todos' },
@@ -398,11 +399,29 @@ export default function Kardex() {
                 value={filtros.tipo}
                 onChange={(v) => setFiltros((f) => ({ ...f, tipo: v }))}
               />
-              {hayFiltros && (
-                <Button variant="ghost" onClick={clearFiltros}>
-                  Limpiar
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => exportKardexPDF({ producto, stats, filtros, items: movimientos })}
+                  disabled={movimientos.length === 0}
+                >
+                  Exportar PDF 📄
                 </Button>
-              )}
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => exportKardexExcel({ producto, stats, filtros, items: movimientos })}
+                  disabled={movimientos.length === 0}
+                >
+                  Exportar Excel 📊
+                </Button>
+                {hayFiltros && (
+                  <Button variant="ghost" onClick={clearFiltros}>
+                    Limpiar
+                  </Button>
+                )}
+              </div>
             </div>
           </section>
 
