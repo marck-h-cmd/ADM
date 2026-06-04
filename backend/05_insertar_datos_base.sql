@@ -1,7 +1,10 @@
 -- ============================================
 -- SISTEMA DE CONTROL DE INVENTARIO Y KARDEX
--- FASE 5: INSERCIÓN DE DATOS BASE
+-- FASE 5: INSERCIÓN DE DATOS BASE (SQL SERVER)
 -- ============================================
+
+SET QUOTED_IDENTIFIER ON;
+GO
 
 -- ============================================
 -- LIMPIAR DATOS EXISTENTES
@@ -40,6 +43,7 @@ DELETE FROM ZONA;
 DELETE FROM CIUDAD;
 DELETE FROM TIPODOC;
 DELETE FROM FERIADOS;
+GO
 
 -- ============================================
 -- INSERTAR DATOS MAESTROS
@@ -84,9 +88,9 @@ VALUES
 -- PROVEEDOR
 INSERT INTO PROVEEDOR ("Proveedor", "RazonSocial", "Ruc", "email", "Local")
 VALUES
-    ('P001', 'PROV A', '20123456789', 'info@proveedor.com', TRUE),
-    ('P002', 'PROV B', '20987654321', 'ventas@distribuidora.com', TRUE),
-    ('P003', 'PROV C', '20555666777', 'importaciones@empresa.com', FALSE);
+    ('P001', 'PROV A', '20123456789', 'info@proveedor.com', 1),
+    ('P002', 'PROV B', '20987654321', 'ventas@distribuidora.com', 1),
+    ('P003', 'PROV C', '20555666777', 'importaciones@empresa.com', 0);
 
 -- LINEA
 INSERT INTO LINEA ("Linea", "Descripcion", "ComiMayor")
@@ -107,7 +111,7 @@ VALUES
 -- PARAMETRO
 INSERT INTO PARAMETRO ("Parametro", "Igv", "TasaInt", "TasaLegal", "TasaDolar", "activo", "Vencidos")
 VALUES
-    (1, 18.00, 1.50, 2.00, 3.80, TRUE, 30);
+    (1, 18.00, 1.50, 2.00, 3.80, 1, 30);
 
 -- FORMA_PAGO
 INSERT INTO FORMA_PAGO ("FormaPago", "Descripcion", "NroDias")
@@ -128,19 +132,19 @@ VALUES
 -- MEDIO_PAGO
 INSERT INTO MEDIO_PAGO ("idMedioPago", "Descripcion", "Activo")
 VALUES
-    ('01', 'EFECTIVO', TRUE),
-    ('02', 'TRANSFERENCIA BANCARIA', TRUE),
-    ('03', 'CHEQUE', TRUE),
-    ('04', 'TARJETA CREDITO', TRUE),
-    ('05', 'TARJETA DEBITO', TRUE);
+    ('01', 'EFECTIVO', 1),
+    ('02', 'TRANSFERENCIA BANCARIA', 1),
+    ('03', 'CHEQUE', 1),
+    ('04', 'TARJETA CREDITO', 1),
+    ('05', 'TARJETA DEBITO', 1);
 
 -- PUNTO_PAGO
 INSERT INTO PUNTO_PAGO ("idPuntoPago", "Descripcion", "Activo", "idTienda")
 VALUES
-    ('01', 'CAJA PRINCIPAL', TRUE, '01'),
-    ('02', 'CAJA SECUNDARIA', TRUE, '01'),
-    ('03', 'CAJA TIENDA NORTE', TRUE, '02'),
-    ('04', 'CAJA TIENDA SUR', TRUE, '03');
+    ('01', 'CAJA PRINCIPAL', 1, '01'),
+    ('02', 'CAJA SECUNDARIA', 1, '01'),
+    ('03', 'CAJA TIENDA NORTE', 1, '02'),
+    ('04', 'CAJA TIENDA SUR', 1, '03');
 
 -- ============================================
 -- INSERTAR PERSONAL (Con Password Hasheado bcrypt)
@@ -153,17 +157,17 @@ INSERT INTO PERSONAL (
     "idTienda", "Email", "Password", "fechaIngre"
 )
 VALUES
-    ('01', 'JUAN PEREZ RAMOS', '9876543210', TRUE, 2500.00, '01',
-     'juan@tenebrosa.com', '$2a$10$qKiMCsS2UuLSKM6XJIktUO0O1/q/WxFAHSt9WxNekvYIGTSha/5xW', CURRENT_DATE),
-    ('02', 'MARIA LOPEZ GARCIA', '9876543211', TRUE, 2600.00, '02',
-     'maria@tenebrosa.com', '$2a$10$qKiMCsS2UuLSKM6XJIktUO0O1/q/WxFAHSt9WxNekvYIGTSha/5xW', CURRENT_DATE),
-    ('03', 'CARLOS RODRIGUEZ SMITH', '9876543212', TRUE, 2550.00, '03',
-     'carlos.rodriguez@tenebrosa.com', '$2a$10$qKiMCsS2UuLSKM6XJIktUO0O1/q/WxFAHSt9WxNekvYIGTSha/5xW', CURRENT_DATE),
-    ('04', 'SANDRA MARTINEZ TORRES', '9876543213', TRUE, 2400.00, '01',
-     'sandra.martinez@tenebrosa.com', '$2a$10$qKiMCsS2UuLSKM6XJIktUO0O1/q/WxFAHSt9WxNekvYIGTSha/5xW', CURRENT_DATE);
+    ('01', 'JUAN PEREZ RAMOS', '9876543210', 1, 2500.00, '01',
+     'juan@tenebrosa.com', '$2a$10$qKiMCsS2UuLSKM6XJIktUO0O1/q/WxFAHSt9WxNekvYIGTSha/5xW', CAST(GETDATE() AS DATE)),
+    ('02', 'MARIA LOPEZ GARCIA', '9876543211', 1, 2600.00, '02',
+     'maria@tenebrosa.com', '$2a$10$qKiMCsS2UuLSKM6XJIktUO0O1/q/WxFAHSt9WxNekvYIGTSha/5xW', CAST(GETDATE() AS DATE)),
+    ('03', 'CARLOS RODRIGUEZ SMITH', '9876543212', 1, 2550.00, '03',
+     'carlos.rodriguez@tenebrosa.com', '$2a$10$qKiMCsS2UuLSKM6XJIktUO0O1/q/WxFAHSt9WxNekvYIGTSha/5xW', CAST(GETDATE() AS DATE)),
+    ('04', 'SANDRA MARTINEZ TORRES', '9876543213', 1, 2400.00, '01',
+     'sandra.martinez@tenebrosa.com', '$2a$10$qKiMCsS2UuLSKM6XJIktUO0O1/q/WxFAHSt9WxNekvYIGTSha/5xW', CAST(GETDATE() AS DATE));
 
 -- ============================================
--- INSERTAR CLIENTES - CORREGIDO: idRepresentante ahora referencia PERSONAL (CHAR(2))
+-- INSERTAR CLIENTES
 -- ============================================
 
 INSERT INTO CLIENTE (
@@ -172,10 +176,10 @@ INSERT INTO CLIENTE (
     "credito", "topeCredito", "Calificacion"
 )
 VALUES
-    ('CL01', '01', 'EMPRESA EJEMPLO SAC', '20123456789', '01', 'M', 'E', FALSE, 0.00, 'A'),
-    ('CL02', '02', 'CLIENTE VIP AREQUIPA', '20987654321', '02', 'F', 'V', TRUE, 50000.00, 'A'),
-    ('CL03', '01', 'NEGOCIO CENTRAL LIMA', '20555666777', '03', 'M', 'N', TRUE, 30000.00, 'B'),
-    ('CL04', '03', 'TIENDA CALLAO EXPRESS', '20444555666', '04', 'F', 'E', TRUE, 25000.00, 'B');
+    ('CL01', '01', 'EMPRESA EJEMPLO SAC', '20123456789', '01', 'M', 'E', 0, 0.00, 'A'),
+    ('CL02', '02', 'CLIENTE VIP AREQUIPA', '20987654321', '02', 'F', 'V', 1, 50000.00, 'A'),
+    ('CL03', '01', 'NEGOCIO CENTRAL LIMA', '20555666777', '03', 'M', 'N', 1, 30000.00, 'B'),
+    ('CL04', '03', 'TIENDA CALLAO EXPRESS', '20444555666', '04', 'F', 'E', 1, 25000.00, 'B');
 
 -- ============================================
 -- INSERTAR PRODUCTOS
@@ -187,17 +191,20 @@ INSERT INTO PRODUCTO (
     "PrecVenta", "PrecCosto", "ConIgv", "UniMed"
 )
 VALUES
-    ('PR01', 'M1', 'SAMSUNG GALAXY S23', 100, 500, 10, 3500.00, 2500.00, TRUE, 'UNIDAD'),
-    ('PR02', 'M1', 'SAMSUNG TV 55 4K', 50, 200, 5, 2000.00, 1400.00, TRUE, 'UNIDAD'),
-    ('PR03', 'M2', 'LG MONITOR 24 FHD', 75, 300, 10, 850.00, 600.00, TRUE, 'UNIDAD'),
-    ('PR04', 'M3', 'HP LAPTOP 15.6 I7', 30, 100, 3, 2800.00, 2000.00, TRUE, 'UNIDAD'),
-    ('PR05', 'M4', 'DELL DESKTOP GAME', 25, 80, 3, 3200.00, 2300.00, TRUE, 'UNIDAD'),
-    ('PR06', 'M5', 'CABLE HDMI 3M', 500, 1000, 50, 35.00, 20.00, TRUE, 'UNIDAD'),
-    ('PR07', 'M5', 'MOUSE INALAMBR', 200, 500, 50, 45.00, 25.00, TRUE, 'UNIDAD');
+    ('PR01', 'M1', 'SAMSUNG GALAXY S23', 100, 500, 10, 3500.00, 2500.00, 1, 'UNIDAD'),
+    ('PR02', 'M1', 'SAMSUNG TV 55 4K', 50, 200, 5, 2000.00, 1400.00, 1, 'UNIDAD'),
+    ('PR03', 'M2', 'LG MONITOR 24 FHD', 75, 300, 10, 850.00, 600.00, 1, 'UNIDAD'),
+    ('PR04', 'M3', 'HP LAPTOP 15.6 I7', 30, 100, 3, 2800.00, 2000.00, 1, 'UNIDAD'),
+    ('PR05', 'M4', 'DELL DESKTOP GAME', 25, 80, 3, 3200.00, 2300.00, 1, 'UNIDAD'),
+    ('PR06', 'M5', 'CABLE HDMI 3M', 500, 1000, 50, 35.00, 20.00, 1, 'UNIDAD'),
+    ('PR07', 'M5', 'MOUSE INALAMBR', 200, 500, 50, 45.00, 25.00, 1, 'UNIDAD');
 
 -- ============================================
 -- INSERTAR DOCUMENTOS DE PRUEBA (Compras)
 -- ============================================
+
+-- temporalmente deshabilitar el trigger de stock para cargar el histórico directamente sin distorsionarlo
+DISABLE TRIGGER trg_detadoc_insert ON DETADOC;
 
 INSERT INTO DOCUMENTO (
     "Documento", "TipoDoc", "Proveedor",
@@ -328,6 +335,9 @@ VALUES
     ('F00000007', 'F', 'PR07', 10, 18, 25.00),
     ('B00000013', 'B', 'PR02', 1, 18, 2000.00);
 
+-- volver a habilitar el trigger
+ENABLE TRIGGER trg_detadoc_insert ON DETADOC;
+
 -- ============================================
 -- INSERTAR METAS DE VENTA
 -- ============================================
@@ -365,26 +375,4 @@ VALUES
     ('02', 4, 2026, 52000.00),
     ('02', 5, 2026, 55000.00),
     ('02', 6, 2026, 58000.00);
-
--- ============================================
--- VERIFICAR DATOS INSERTADOS
--- ============================================
-
--- Contar registros por tabla
-SELECT 'TIPODOC' as Tabla, COUNT(*) as Registros FROM TIPODOC UNION ALL
-SELECT 'CIUDAD', COUNT(*) FROM CIUDAD UNION ALL
-SELECT 'ZONA', COUNT(*) FROM ZONA UNION ALL
-SELECT 'TIENDA', COUNT(*) FROM TIENDA UNION ALL
-SELECT 'PERSONAL', COUNT(*) FROM PERSONAL UNION ALL
-SELECT 'CLIENTE', COUNT(*) FROM CLIENTE UNION ALL
-SELECT 'PROVEEDOR', COUNT(*) FROM PROVEEDOR UNION ALL
-SELECT 'LINEA', COUNT(*) FROM LINEA UNION ALL
-SELECT 'MARCA', COUNT(*) FROM MARCA UNION ALL
-SELECT 'PRODUCTO', COUNT(*) FROM PRODUCTO UNION ALL
-SELECT 'DOCUMENTO', COUNT(*) FROM DOCUMENTO UNION ALL
-SELECT 'DETADOC', COUNT(*) FROM DETADOC UNION ALL
-SELECT 'VENTA_META', COUNT(*) FROM VENTA_META;
-
--- ============================================
--- FIN DE INSERCIÓN DE DATOS BASE
--- ============================================
+GO

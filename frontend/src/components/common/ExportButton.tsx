@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { exportCSV } from '@/utils/export';
+import { exportExcel } from '@/utils/export';
 import { cn } from '@/utils/helpers';
 
 interface ExportButtonProps {
@@ -15,15 +15,33 @@ export function ExportButton({
   rows,
   columns,
   disabled = false,
-  label = 'Exportar',
+  label = 'Exportar Excel 📊',
 }: ExportButtonProps) {
   const [flash, setFlash] = useState(false);
 
-  function handle() {
+  async function handle() {
     if (rows.length === 0) return;
-    exportCSV(filename, rows, columns);
-    setFlash(true);
-    setTimeout(() => setFlash(false), 1200);
+    
+    // Generar un título descriptivo según el archivo
+    let title = 'Reporte General';
+    const lowerFn = filename.toLowerCase();
+    if (lowerFn.includes('ventas')) {
+      title = 'Reporte de Ventas Detalladas';
+    } else if (lowerFn.includes('rotacion')) {
+      title = 'Reporte de Rotación de Inventario';
+    } else if (lowerFn.includes('valorizacion')) {
+      title = 'Reporte de Valorización de Inventario';
+    } else if (lowerFn.includes('vencimientos')) {
+      title = 'Reporte de Cartera y Vencimientos';
+    }
+
+    try {
+      await exportExcel(filename, title, rows, columns);
+      setFlash(true);
+      setTimeout(() => setFlash(false), 1200);
+    } catch (e) {
+      console.error('Error exportando Excel:', e);
+    }
   }
 
   return (
@@ -38,7 +56,7 @@ export function ExportButton({
           : 'text-[var(--color-ink-800)] hover:border-[var(--color-ink-700)] hover:text-[var(--color-ink-900)]',
         flash && 'text-[var(--color-jade-500)] border-[var(--color-jade-500)]',
       )}
-      title={`Exportar ${rows.length} filas a CSV`}
+      title={`Exportar ${rows.length} filas a Excel`}
     >
       <svg
         width="11"
@@ -58,3 +76,4 @@ export function ExportButton({
     </button>
   );
 }
+

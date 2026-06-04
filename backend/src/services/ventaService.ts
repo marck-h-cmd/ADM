@@ -29,8 +29,10 @@ export const ventaService = {
       const productosJson = JSON.stringify(data.productos);
       
       const result = await client.query(
-        `SELECT Registrar_Venta($1, $2, $3, $4, $5, $6, $7, $8) as mensaje`,
-        [data.cliente, data.documento, data.fecha, data.personal, data.formaPago, productosJson, data.credito, data.cuotas || 1]
+        `DECLARE @msg VARCHAR(255);
+         EXEC Registrar_Venta $1, $2, $3, $4, $5, $6, $7, $8, @msg OUTPUT;
+         SELECT @msg as mensaje;`,
+        [data.cliente, data.documento, data.fecha, data.personal, data.formaPago, productosJson, data.credito ? 1 : 0, data.cuotas || 1]
       );
       
       return result.rows[0].mensaje;
@@ -62,20 +64,23 @@ export const ventaService = {
       params.push(fechaFin.length === 10 ? `${fechaFin}T23:59:59.999` : fechaFin);
     }
     if (search) {
-      queryText += ` AND (c."Nombre" ILIKE $${paramIndex++} OR d."Documento" ILIKE $${paramIndex++})`;
+      queryText += ` AND (c."Nombre" LIKE $${paramIndex++} OR d."Documento" LIKE $${paramIndex++})`;
       params.push(`%${search}%`, `%${search}%`);
     }
     
+    const limitIndex = paramIndex++;
+    const offsetIndex = paramIndex++;
+
     queryText += ` GROUP BY d."Documento", d."TipoDoc", d."Fecha", d."Cliente", c."Nombre", d."Personal", d."pagado", d."Estado"
                    ORDER BY d."Fecha" DESC
-                   LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
+                   OFFSET $${offsetIndex} ROWS FETCH NEXT $${limitIndex} ROWS ONLY`;
     
     params.push(limit, offset);
     
     const result = await query(queryText, params);
     
     // Contar total con los mismos filtros (sin limit/offset)
-    let countQuery = `SELECT COUNT(DISTINCT d."Documento" || d."TipoDoc") as count FROM DOCUMENTO d LEFT JOIN CLIENTE c ON c."Cliente" = d."Cliente" WHERE d."TipoDoc" IN ('B', 'F')`;
+    let countQuery = `SELECT COUNT(DISTINCT d."Documento" + d."TipoDoc") as count FROM DOCUMENTO d LEFT JOIN CLIENTE c ON c."Cliente" = d."Cliente" WHERE d."TipoDoc" IN ('B', 'F')`;
     const countParams: any[] = [];
     let countParamIndex = 1;
     if (fechaInicio) {
@@ -87,7 +92,7 @@ export const ventaService = {
       countParams.push(fechaFin.length === 10 ? `${fechaFin}T23:59:59.999` : fechaFin);
     }
     if (search) {
-      countQuery += ` AND (c."Nombre" ILIKE $${countParamIndex++} OR d."Documento" ILIKE $${countParamIndex++})`;
+      countQuery += ` AND (c."Nombre" LIKE $${countParamIndex++} OR d."Documento" LIKE $${countParamIndex++})`;
       countParams.push(`%${search}%`, `%${search}%`);
     }
     const countResult = await query(countQuery, countParams);
@@ -141,18 +146,21 @@ export const ventaService = {
 
   async registrarPago(documento: string, tipoDoc: string, monto: number, medioPago: string): Promise<void> {
     await transaction(async (client) => {
-      // Registrar pago en la cuota correspondiente
+      // Registrar pago en la cuota correspondiente usando un CTE actualizable en SQL Server
       await client.query(
-        `UPDATE CRONOGRAMA 
-         SET "Fepago" = CURRENT_TIMESTAMP, "estado" = 'C', "idMedioPago" = $3
-         WHERE "Documento" = $1 AND "TipoDoc" = $2 AND "estado" = 'P'
-         ORDER BY "NroCuota" LIMIT 1`,
+        `WITH CTE AS (
+           SELECT TOP (1) * FROM CRONOGRAMA 
+           WHERE "Documento" = $1 AND "TipoDoc" = $2 AND "estado" = 'P'
+           ORDER BY "NroCuota"
+         )
+         UPDATE CTE 
+         SET "Fepago" = CURRENT_TIMESTAMP, "estado" = 'C', "idMedioPago" = $3`,
         [documento, tipoDoc, medioPago]
       );
       
       // Verificar si todas las cuotas están pagadas
       const pendingResult = await client.query(
-        `SELECT COUNT(*) FROM CRONOGRAMA 
+        `SELECT COUNT(*) as count FROM CRONOGRAMA 
          WHERE "Documento" = $1 AND "TipoDoc" = $2 AND "estado" != 'C'`,
         [documento, tipoDoc]
       );
@@ -174,7 +182,7 @@ export const ventaService = {
         COALESCE(SUM("pagado"), 0) as total,
         AVG("pagado") as promedio
       FROM DOCUMENTO
-      WHERE "Fecha"::date = $1 AND "TipoDoc" IN ('B', 'F')
+      WHERE CAST("Fecha" AS DATE) = $1 AND "TipoDoc" IN ('B', 'F')
     `, [fechaConsulta]);
     return result.rows[0];
   },

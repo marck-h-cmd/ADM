@@ -6,7 +6,7 @@ export const authService = {
   async login(username: string, password: string): Promise<{ token: string; user: any } | null> {
     // Buscar usuario en PERSONAL
     const result = await query(
-      `SELECT "Personal", "Nombre", "Email", "Password" FROM PERSONAL WHERE "Email" = $1 AND "Activo" = TRUE`,
+      `SELECT "Personal", "Nombre", "Email", "Password" FROM PERSONAL WHERE "Email" = $1 AND "Activo" = 1`,
       [username]
     );
 

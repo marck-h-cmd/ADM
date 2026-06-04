@@ -1,116 +1,47 @@
 -- ============================================
 -- SISTEMA DE CONTROL DE INVENTARIO Y KARDEX
--- FASE 4: CREACIÓN DE FUNCIONES TRIGGERS
+-- FASE 4: CREACIÓN DE TRIGGERS (SQL SERVER)
 -- ============================================
 
--- ============================================
--- FUNCIÓN PARA ACTUALIZAR STOCK
--- ============================================
+SET QUOTED_IDENTIFIER ON;
+GO
 
-CREATE OR REPLACE FUNCTION Actualizar_Stock_Producto()
-RETURNS TRIGGER AS $$
-DECLARE
-    v_signo INTEGER := 1;
-    v_nueva_cantidad INTEGER;
+-- ============================================
+-- TRIGGER COMBINADO PARA DETADOC: VALIDAR Y ACTUALIZAR STOCK
+-- ============================================
+CREATE OR ALTER TRIGGER trg_detadoc_insert
+ON DETADOC
+AFTER INSERT
+AS
 BEGIN
-    SELECT COALESCE("Signo", 1) INTO v_signo
-    FROM TIPODOC
-    WHERE "TipoDoc" = NEW."TipoDoc";
+    SET NOCOUNT ON;
 
-    v_nueva_cantidad := (NEW."Cantidad" * v_signo)::INTEGER;
+    -- 1. Validar stock para salidas (donde Signo = -1)
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        INNER JOIN TIPODOC td ON td.TipoDoc = i.TipoDoc
+        INNER JOIN PRODUCTO p ON p.Producto = i.Producto
+        WHERE td.Signo = -1 AND p.StockAc < i.Cantidad
+    )
+    BEGIN
+        DECLARE @msg NVARCHAR(500);
+        SELECT TOP 1 @msg = 'Stock insuficiente para producto ' + p.Producto + '. Stock disponible: ' + CAST(p.StockAc AS VARCHAR) + ', solicitado: ' + CAST(CAST(i.Cantidad AS INT) AS VARCHAR)
+        FROM inserted i
+        INNER JOIN TIPODOC td ON td.TipoDoc = i.TipoDoc
+        INNER JOIN PRODUCTO p ON p.Producto = i.Producto
+        WHERE td.Signo = -1 AND p.StockAc < i.Cantidad;
 
-    UPDATE PRODUCTO
-    SET "StockAc" = "StockAc" + v_nueva_cantidad
-    WHERE "Producto" = NEW."Producto";
+        RAISERROR(@msg, 16, 1);
+        ROLLBACK TRANSACTION;
+        RETURN;
+    END
 
-    RETURN NEW;
+    -- 2. Actualizar stock de los productos insertados
+    UPDATE p
+    SET p.StockAc = p.StockAc + CAST(i.Cantidad * COALESCE(td.Signo, 1) AS INT)
+    FROM PRODUCTO p
+    INNER JOIN inserted i ON p.Producto = i.Producto
+    LEFT JOIN TIPODOC td ON td.TipoDoc = i.TipoDoc;
 END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trg_actualizar_stock
-AFTER INSERT ON DETADOC
-FOR EACH ROW
-EXECUTE FUNCTION Actualizar_Stock_Producto();
-
--- ============================================
--- FUNCIÓN PARA VALIDAR STOCK EN VENTAS
--- ============================================
-
-CREATE OR REPLACE FUNCTION Validar_Stock_Venta()
-RETURNS TRIGGER AS $$
-DECLARE
-    v_stock_actual INTEGER;
-    v_signo INTEGER;
-BEGIN
-    SELECT COALESCE("Signo", 1) INTO v_signo
-    FROM TIPODOC
-    WHERE "TipoDoc" = NEW."TipoDoc";
-
-    IF v_signo = -1 THEN
-        SELECT "StockAc" INTO v_stock_actual
-        FROM PRODUCTO
-        WHERE "Producto" = NEW."Producto";
-
-        IF v_stock_actual < NEW."Cantidad" THEN
-            RAISE EXCEPTION 'Stock insuficiente para producto %. Stock disponible: %, solicitado: %',
-                NEW."Producto", v_stock_actual, NEW."Cantidad";
-        END IF;
-    END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trg_validar_stock
-BEFORE INSERT ON DETADOC
-FOR EACH ROW
-EXECUTE FUNCTION Validar_Stock_Venta();
-
--- ============================================
--- FUNCIÓN PARA AUDITORÍA DE CAMBIOS
--- ============================================
-
-CREATE OR REPLACE FUNCTION Auditar_Cambios()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF TG_OP = 'UPDATE' THEN
-        INSERT INTO SEGUIMIENTO_X (
-            "Tabla",
-            "Campo",
-            "ValorActual",
-            "ValorNuevo",
-            "Fecha",
-            "Usuario"
-        )
-        VALUES (
-            TG_TABLE_NAME,
-            'UPDATE_GENERAL',
-            OLD::TEXT,
-            NEW::TEXT,
-            CURRENT_TIMESTAMP,
-            CURRENT_USER
-        );
-    ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO SEGUIMIENTO_X (
-            "Tabla",
-            "Campo",
-            "ValorActual",
-            "Fecha",
-            "Usuario"
-        )
-        VALUES (
-            TG_TABLE_NAME,
-            'DELETE',
-            OLD::TEXT,
-            CURRENT_TIMESTAMP,
-            CURRENT_USER
-        );
-    END IF;
-    
-    RETURN NULL;
-END;
-$$ LANGUAGE plpgsql;
-
--- ============================================
--- FIN DE CREACIÓN DE TRIGGERS
--- ============================================
+GO

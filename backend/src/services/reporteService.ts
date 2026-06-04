@@ -105,7 +105,7 @@ export const reporteService = {
   },
 
   async getRotacion(anio: number): Promise<any[]> {
-    const result = await query(`SELECT * FROM Rotacion_Inventario($1)`, [anio]);
+    const result = await query(`SELECT * FROM Rotacion_Inventario($1, NULL)`, [anio]);
     return result.rows;
   },
 
@@ -122,14 +122,14 @@ export const reporteService = {
         d."Cliente", 
         cl."Nombre" as "ClienteNombre",
         NULL as "Telefono",
-        c."feVence"::date - CURRENT_DATE as "DiasVencimiento"
+        DATEDIFF(day, GETDATE(), c."feVence") as "DiasVencimiento"
       FROM CRONOGRAMA c
       LEFT JOIN DOCUMENTO d ON d."Documento" = c."Documento" AND d."TipoDoc" = c."TipoDoc"
       LEFT JOIN CLIENTE cl ON cl."Cliente" = d."Cliente"
       WHERE c."estado" = 'P' 
-        AND c."feVence" <= CURRENT_DATE + $1::interval
+        AND c."feVence" <= DATEADD(day, $1, CAST(GETDATE() AS DATE))
       ORDER BY c."feVence" ASC
-    `, [`${diasVencimiento} days`]);
+    `, [diasVencimiento]);
     
     return result.rows;
   },
