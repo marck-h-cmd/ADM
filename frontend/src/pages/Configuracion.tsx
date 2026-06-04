@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
@@ -6,8 +6,6 @@ import { usePreferencesStore, type DensidadUI, type FormatoFecha, type FormatoMo
 import { useTheme } from '@/hooks/useTheme';
 import { Field, Input, Select } from '@/components/common/Input';
 import { Button } from '@/components/common/Button';
-import { Alert } from '@/components/common/Alert';
-import { PasswordInput } from '@/components/common/PasswordInput';
 import { APP_NAME, APP_TAGLINE } from '@/utils/constants';
 import { cn } from '@/utils/helpers';
 import type { ThemeMode } from '@/store/themeStore';
@@ -169,102 +167,6 @@ function ThemeSelector() {
   );
 }
 
-function PasswordForm() {
-  const [actual, setActual] = useState('');
-  const [nueva, setNueva] = useState('');
-  const [confirm, setConfirm] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState<{
-    tone: 'jade' | 'cinnabar' | 'gold';
-    msg: string;
-  } | null>(null);
-
-  const errors = {
-    actual: !actual ? 'Requerida' : null,
-    nueva:
-      nueva.length < 8
-        ? 'Mínimo 8 caracteres'
-        : nueva === actual
-          ? 'Debe ser diferente a la actual'
-          : null,
-    confirm: confirm !== nueva ? 'No coincide con la nueva' : null,
-  };
-  const hasErrors = !!errors.actual || !!errors.nueva || !!errors.confirm;
-
-  async function handleSubmit(ev: FormEvent<HTMLFormElement>) {
-    ev.preventDefault();
-    if (hasErrors) return;
-    setSubmitting(true);
-    setFeedback(null);
-    // Backend actual no expone endpoint de cambio de contraseña
-    await new Promise((r) => setTimeout(r, 600));
-    setSubmitting(false);
-    setFeedback({
-      tone: 'gold',
-      msg: 'El backend actual no expone endpoint de cambio de contraseña. La validación pasó correctamente.',
-    });
-    setActual('');
-    setNueva('');
-    setConfirm('');
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      {feedback && <Alert tone={feedback.tone}>{feedback.msg}</Alert>}
-
-      <Field mark="01" label="Contraseña actual" required error={errors.actual ?? undefined}>
-        <PasswordInput
-          value={actual}
-          onChange={(e) => setActual(e.target.value)}
-          placeholder="••••••••"
-          autoComplete="current-password"
-        />
-      </Field>
-
-      <Field
-        mark="02"
-        label="Nueva contraseña"
-        required
-        error={errors.nueva ?? undefined}
-        hint="Mínimo 8 caracteres · mayúscula, minúscula, número y símbolo"
-      >
-        <PasswordInput
-          value={nueva}
-          onChange={(e) => setNueva(e.target.value)}
-          placeholder="••••••••"
-          autoComplete="new-password"
-          showStrength
-        />
-      </Field>
-
-      <Field
-        mark="03"
-        label="Confirmar nueva contraseña"
-        required
-        error={errors.confirm ?? undefined}
-      >
-        <PasswordInput
-          value={confirm}
-          onChange={(e) => setConfirm(e.target.value)}
-          placeholder="••••••••"
-          autoComplete="new-password"
-        />
-      </Field>
-
-      <div className="pt-2 hairline-t flex items-center justify-end">
-        <Button
-          type="submit"
-          variant="primary"
-          loading={submitting}
-          disabled={hasErrors}
-        >
-          Actualizar contraseña
-        </Button>
-      </div>
-    </form>
-  );
-}
-
 export default function Configuracion() {
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
@@ -296,8 +198,7 @@ export default function Configuracion() {
           Configuración
         </h2>
         <p className="text-sm text-[var(--color-ink-700)] mt-2 max-w-xl">
-          Sesión activa, credenciales, preferencias del sistema e información
-          del entorno.
+          Sesión activa, preferencias del sistema e información del entorno.
         </p>
       </header>
 
@@ -368,20 +269,7 @@ export default function Configuracion() {
         style={{ animationDelay: '120ms' }}
       >
         <header className="flex items-baseline justify-between mb-5">
-          <p className="mark text-[0.55rem]">§ II — Cambiar contraseña</p>
-          <span className="mark text-[0.5rem] text-[var(--color-ink-600)]">
-            JWT local
-          </span>
-        </header>
-        <PasswordForm />
-      </section>
-
-      <section
-        className="surface p-7 reveal"
-        style={{ animationDelay: '180ms' }}
-      >
-        <header className="flex items-baseline justify-between mb-5">
-          <p className="mark text-[0.55rem]">§ III — Preferencias</p>
+          <p className="mark text-[0.55rem]">§ II — Preferencias</p>
           <button
             type="button"
             onClick={() => prefs.reset()}

@@ -107,6 +107,32 @@
     --grain-opacity: 0.025;
   }
 
+  /* Density — applied to <html data-density="compacta|normal|holgada">.
+     Default is "normal" (no override needed). The other two override the
+     row padding of the common table and a few list primitives, so the
+     preference is visible without changing every component class. */
+  :root[data-density="compacta"] tbody tr > td {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+  :root[data-density="compacta"] .divide-y > :not([hidden]) ~ :not([hidden]),
+  :root[data-density="compacta"] .divide-y > li,
+  :root[data-density="compacta"] .divide-y > * {
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+  }
+
+  :root[data-density="holgada"] tbody tr > td {
+    padding-top: 1.125rem;
+    padding-bottom: 1.125rem;
+  }
+  :root[data-density="holgada"] .divide-y > :not([hidden]) ~ :not([hidden]),
+  :root[data-density="holgada"] .divide-y > li,
+  :root[data-density="holgada"] .divide-y > * {
+    padding-top: 0.95rem;
+    padding-bottom: 0.95rem;
+  }
+
   html,
   body,
   #root {
