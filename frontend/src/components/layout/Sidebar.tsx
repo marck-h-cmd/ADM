@@ -21,6 +21,7 @@ const items: NavItem[] = [
   { to: '/compras/historial', num: '07', label: 'Historial de compras' },
   { to: '/kardex', num: '08', label: 'Kardex' },
   { to: '/reportes', num: '09', label: 'Reportes' },
+  { to: '/configuracion', num: '10', label: 'Configuración' },
 ];
 
 export function Sidebar() {

@@ -60,17 +60,80 @@ function Toggle({
 
 function ThemeSelector() {
   const { theme, resolved, setTheme } = useTheme();
-  const options: { key: ThemeMode; label: string; mark: string }[] = [
-    { key: 'light', label: 'Claro', mark: '01' },
-    { key: 'dark', label: 'Oscuro', mark: '02' },
-    { key: 'system', label: 'Sistema', mark: '03' },
+  const options: {
+    key: ThemeMode;
+    label: string;
+    mark: string;
+    icon: React.ReactNode;
+  }[] = [
+    {
+      key: 'light',
+      label: 'Claro',
+      mark: '01',
+      icon: (
+        <svg viewBox="0 0 16 16" fill="none" className="h-3 w-3" aria-hidden="true">
+          <circle cx="8" cy="8" r="2.4" stroke="currentColor" strokeWidth="1.3" />
+          <g stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
+            <path d="M8 1.8v1.4" />
+            <path d="M8 12.8v1.4" />
+            <path d="M1.8 8h1.4" />
+            <path d="M12.8 8h1.4" />
+            <path d="M3.6 3.6l1 1" />
+            <path d="M11.4 11.4l1 1" />
+            <path d="M3.6 12.4l1-1" />
+            <path d="M11.4 4.6l1-1" />
+          </g>
+        </svg>
+      ),
+    },
+    {
+      key: 'dark',
+      label: 'Oscuro',
+      mark: '02',
+      icon: (
+        <svg viewBox="0 0 16 16" fill="none" className="h-3 w-3" aria-hidden="true">
+          <path
+            d="M13.2 9.6A5.2 5.2 0 0 1 6.4 2.8a5.4 5.4 0 0 0 6.8 6.8Z"
+            stroke="currentColor"
+            strokeWidth="1.3"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    {
+      key: 'system',
+      label: 'Sistema',
+      mark: '03',
+      icon: (
+        <svg viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
+          <rect
+            x="1.8"
+            y="2.8"
+            width="12.4"
+            height="8"
+            rx="0.6"
+            stroke="currentColor"
+            strokeWidth="1.2"
+          />
+          <path
+            d="M5.8 13.2h4.4M8 11v2.2"
+            stroke="currentColor"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <circle cx="12.4" cy="4.6" r="0.85" fill="currentColor" />
+        </svg>
+      ),
+    },
   ];
   return (
     <div className="mb-px bg-[var(--color-border-hairline)]">
       <div className="bg-[var(--color-ink-100)] p-5 space-y-3">
-        <div className="flex items-baseline justify-between">
-          <p className="mark text-[0.5rem] text-[var(--color-ink-600)]">
-            § Apariencia
+        <div className="flex items-baseline justify-between flex-wrap gap-2">
+          <p className="mark text-[0.55rem] text-[var(--color-ink-700)]">
+            § Tema de la interfaz
           </p>
           <span className="mark text-[0.5rem] text-[var(--color-ink-600)]">
             activo: {theme === 'system' ? `sistema · ${resolved === 'dark' ? 'oscuro' : 'claro'}` : theme === 'dark' ? 'oscuro' : 'claro'}
@@ -84,14 +147,15 @@ function ThemeSelector() {
                 key={o.key}
                 type="button"
                 onClick={() => setTheme(o.key)}
+                aria-pressed={active}
                 className={cn(
-                  'mark text-[0.55rem] px-3 py-1.5 hairline transition-all capitalize inline-flex items-center gap-2',
+                  'text-[0.7rem] font-sans font-medium uppercase tracking-[0.12em] px-3.5 py-2 hairline transition-all inline-flex items-center gap-2',
                   active
                     ? 'bg-[var(--color-ink-900)] text-[var(--color-ink-50)] border-[var(--color-ink-900)]'
-                    : 'text-[var(--color-ink-700)] hover:border-[var(--color-ink-700)]',
+                    : 'text-[var(--color-ink-700)] hover:border-[var(--color-ink-700)] hover:text-[var(--color-ink-900)]',
                 )}
               >
-                <span className="text-[0.5rem] opacity-70">{o.mark}</span>
+                {o.icon}
                 {o.label}
               </button>
             );
