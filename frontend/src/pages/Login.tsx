@@ -55,7 +55,7 @@ export default function Login() {
           className="absolute inset-0 opacity-[0.04] pointer-events-none"
           style={{
             backgroundImage:
-              'repeating-linear-gradient(0deg, rgba(232,230,224,0.6) 0 1px, transparent 1px 64px), repeating-linear-gradient(90deg, rgba(232,230,224,0.6) 0 1px, transparent 1px 64px)',
+              'repeating-linear-gradient(0deg, color-mix(in srgb, var(--color-ink-900) 60%, transparent) 0 1px, transparent 1px 64px), repeating-linear-gradient(90deg, color-mix(in srgb, var(--color-ink-900) 60%, transparent) 0 1px, transparent 1px 64px)',
           }}
         />
 
@@ -85,7 +85,7 @@ export default function Login() {
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-px bg-[rgba(232,230,224,0.08)] max-w-lg">
+          <div className="grid grid-cols-3 gap-px bg-[var(--color-border-hairline)] max-w-lg">
             {[
               { k: '01', v: 'Kardex perpetuo' },
               { k: '02', v: 'Stock validado' },
@@ -165,7 +165,7 @@ export default function Login() {
               {loading ? 'Verificando' : 'Ingresar'}
             </Button>
 
-            <div className="space-y-2 mt-4 pt-4 border-t border-[rgba(232,230,224,0.08)]">
+            <div className="space-y-2 mt-4 pt-4 border-t border-[var(--color-border-hairline)]">
               <p className="mark text-[0.55rem] text-[var(--color-ink-600)] text-center">¶ Acceso rápido de prueba</p>
               <div className="grid grid-cols-2 gap-2">
                 <button
@@ -174,7 +174,7 @@ export default function Login() {
                     setUsername('juan@tenebrosa.com');
                     setPassword('password123');
                   }}
-                  className="px-3 py-2 text-[0.7rem] bg-[var(--color-ink-100)] text-[var(--color-ink-800)] hover:bg-[var(--color-ink-200)] transition text-left mark flex flex-col justify-between cursor-pointer border border-[rgba(232,230,224,0.08)] rounded-sm"
+                  className="px-3 py-2 text-[0.7rem] bg-[var(--color-ink-100)] text-[var(--color-ink-800)] hover:bg-[var(--color-ink-200)] transition text-left mark flex flex-col justify-between cursor-pointer border border-[var(--color-border-hairline)] rounded-sm"
                 >
                   <span className="text-[var(--color-gold-500)] text-[0.55rem]">Personal 01</span>
                   <span className="font-semibold truncate">Juan Pérez</span>
@@ -185,7 +185,7 @@ export default function Login() {
                     setUsername('maria@tenebrosa.com');
                     setPassword('password123');
                   }}
-                  className="px-3 py-2 text-[0.7rem] bg-[var(--color-ink-100)] text-[var(--color-ink-800)] hover:bg-[var(--color-ink-200)] transition text-left mark flex flex-col justify-between cursor-pointer border border-[rgba(232,230,224,0.08)] rounded-sm"
+                  className="px-3 py-2 text-[0.7rem] bg-[var(--color-ink-100)] text-[var(--color-ink-800)] hover:bg-[var(--color-ink-200)] transition text-left mark flex flex-col justify-between cursor-pointer border border-[var(--color-border-hairline)] rounded-sm"
                 >
                   <span className="text-[var(--color-gold-500)] text-[0.55rem]">Personal 02</span>
                   <span className="font-semibold truncate">María López</span>

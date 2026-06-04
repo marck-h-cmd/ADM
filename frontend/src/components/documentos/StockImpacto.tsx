@@ -14,7 +14,7 @@ export function StockImpacto({ useStore }: StockImpactoProps) {
 
   if (items.length === 0) {
     return (
-      <div className="surface p-4 space-y-1.5 bg-[rgba(61,139,106,0.04)] border-[var(--color-jade-500)]/20">
+      <div className="surface p-4 space-y-1.5 bg-[var(--color-tint-jade)] border-[var(--color-jade-500)]/20">
         <p className="mark text-[0.5rem] text-[var(--color-ink-600)]">
           Impacto en stock
         </p>
@@ -29,7 +29,7 @@ export function StockImpacto({ useStore }: StockImpactoProps) {
   const skus = items.length;
 
   return (
-    <div className="surface p-4 space-y-3 bg-[rgba(61,139,106,0.04)] border-[var(--color-jade-500)]/20">
+    <div className="surface p-4 space-y-3 bg-[var(--color-tint-jade)] border-[var(--color-jade-500)]/20">
       <header className="flex items-baseline justify-between">
         <p className="mark text-[0.55rem] text-[var(--color-jade-500)]">
           § Impacto en stock

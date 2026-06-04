@@ -1,14 +1,14 @@
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
 import { usePreferencesStore, type DensidadUI, type FormatoFecha, type FormatoMoneda } from '@/store/preferencesStore';
+import { useTheme } from '@/hooks/useTheme';
 import { Field, Input, Select } from '@/components/common/Input';
 import { Button } from '@/components/common/Button';
-import { Alert } from '@/components/common/Alert';
-import { PasswordInput } from '@/components/common/PasswordInput';
 import { APP_NAME, APP_TAGLINE } from '@/utils/constants';
 import { cn } from '@/utils/helpers';
+import type { ThemeMode } from '@/store/themeStore';
 
 function Toggle({
   checked,
@@ -56,99 +56,114 @@ function Toggle({
   );
 }
 
-function PasswordForm() {
-  const [actual, setActual] = useState('');
-  const [nueva, setNueva] = useState('');
-  const [confirm, setConfirm] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState<{
-    tone: 'jade' | 'cinnabar' | 'gold';
-    msg: string;
-  } | null>(null);
-
-  const errors = {
-    actual: !actual ? 'Requerida' : null,
-    nueva:
-      nueva.length < 8
-        ? 'Mínimo 8 caracteres'
-        : nueva === actual
-          ? 'Debe ser diferente a la actual'
-          : null,
-    confirm: confirm !== nueva ? 'No coincide con la nueva' : null,
-  };
-  const hasErrors = !!errors.actual || !!errors.nueva || !!errors.confirm;
-
-  async function handleSubmit(ev: FormEvent<HTMLFormElement>) {
-    ev.preventDefault();
-    if (hasErrors) return;
-    setSubmitting(true);
-    setFeedback(null);
-    // Backend actual no expone endpoint de cambio de contraseña
-    await new Promise((r) => setTimeout(r, 600));
-    setSubmitting(false);
-    setFeedback({
-      tone: 'gold',
-      msg: 'El backend actual no expone endpoint de cambio de contraseña. La validación pasó correctamente.',
-    });
-    setActual('');
-    setNueva('');
-    setConfirm('');
-  }
-
+function ThemeSelector() {
+  const { theme, resolved, setTheme } = useTheme();
+  const options: {
+    key: ThemeMode;
+    label: string;
+    mark: string;
+    icon: React.ReactNode;
+  }[] = [
+    {
+      key: 'light',
+      label: 'Claro',
+      mark: '01',
+      icon: (
+        <svg viewBox="0 0 16 16" fill="none" className="h-3 w-3" aria-hidden="true">
+          <circle cx="8" cy="8" r="2.4" stroke="currentColor" strokeWidth="1.3" />
+          <g stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
+            <path d="M8 1.8v1.4" />
+            <path d="M8 12.8v1.4" />
+            <path d="M1.8 8h1.4" />
+            <path d="M12.8 8h1.4" />
+            <path d="M3.6 3.6l1 1" />
+            <path d="M11.4 11.4l1 1" />
+            <path d="M3.6 12.4l1-1" />
+            <path d="M11.4 4.6l1-1" />
+          </g>
+        </svg>
+      ),
+    },
+    {
+      key: 'dark',
+      label: 'Oscuro',
+      mark: '02',
+      icon: (
+        <svg viewBox="0 0 16 16" fill="none" className="h-3 w-3" aria-hidden="true">
+          <path
+            d="M13.2 9.6A5.2 5.2 0 0 1 6.4 2.8a5.4 5.4 0 0 0 6.8 6.8Z"
+            stroke="currentColor"
+            strokeWidth="1.3"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    {
+      key: 'system',
+      label: 'Sistema',
+      mark: '03',
+      icon: (
+        <svg viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
+          <rect
+            x="1.8"
+            y="2.8"
+            width="12.4"
+            height="8"
+            rx="0.6"
+            stroke="currentColor"
+            strokeWidth="1.2"
+          />
+          <path
+            d="M5.8 13.2h4.4M8 11v2.2"
+            stroke="currentColor"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <circle cx="12.4" cy="4.6" r="0.85" fill="currentColor" />
+        </svg>
+      ),
+    },
+  ];
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      {feedback && <Alert tone={feedback.tone}>{feedback.msg}</Alert>}
-
-      <Field mark="01" label="Contraseña actual" required error={errors.actual ?? undefined}>
-        <PasswordInput
-          value={actual}
-          onChange={(e) => setActual(e.target.value)}
-          placeholder="••••••••"
-          autoComplete="current-password"
-        />
-      </Field>
-
-      <Field
-        mark="02"
-        label="Nueva contraseña"
-        required
-        error={errors.nueva ?? undefined}
-        hint="Mínimo 8 caracteres · mayúscula, minúscula, número y símbolo"
-      >
-        <PasswordInput
-          value={nueva}
-          onChange={(e) => setNueva(e.target.value)}
-          placeholder="••••••••"
-          autoComplete="new-password"
-          showStrength
-        />
-      </Field>
-
-      <Field
-        mark="03"
-        label="Confirmar nueva contraseña"
-        required
-        error={errors.confirm ?? undefined}
-      >
-        <PasswordInput
-          value={confirm}
-          onChange={(e) => setConfirm(e.target.value)}
-          placeholder="••••••••"
-          autoComplete="new-password"
-        />
-      </Field>
-
-      <div className="pt-2 hairline-t flex items-center justify-end">
-        <Button
-          type="submit"
-          variant="primary"
-          loading={submitting}
-          disabled={hasErrors}
-        >
-          Actualizar contraseña
-        </Button>
+    <div className="mb-px bg-[var(--color-border-hairline)]">
+      <div className="bg-[var(--color-ink-100)] p-5 space-y-3">
+        <div className="flex items-baseline justify-between flex-wrap gap-2">
+          <p className="mark text-[0.55rem] text-[var(--color-ink-700)]">
+            § Tema de la interfaz
+          </p>
+          <span className="mark text-[0.5rem] text-[var(--color-ink-600)]">
+            activo: {theme === 'system' ? `sistema · ${resolved === 'dark' ? 'oscuro' : 'claro'}` : theme === 'dark' ? 'oscuro' : 'claro'}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          {options.map((o) => {
+            const active = theme === o.key;
+            return (
+              <button
+                key={o.key}
+                type="button"
+                onClick={() => setTheme(o.key)}
+                aria-pressed={active}
+                className={cn(
+                  'text-[0.7rem] font-sans font-medium uppercase tracking-[0.12em] px-3.5 py-2 hairline transition-all inline-flex items-center gap-2',
+                  active
+                    ? 'bg-[var(--color-ink-900)] text-[var(--color-ink-50)] border-[var(--color-ink-900)]'
+                    : 'text-[var(--color-ink-700)] hover:border-[var(--color-ink-700)] hover:text-[var(--color-ink-900)]',
+                )}
+              >
+                {o.icon}
+                {o.label}
+              </button>
+            );
+          })}
+        </div>
+        <p className="mark text-[0.5rem] text-[var(--color-ink-600)]">
+          Sistema sigue la preferencia del sistema operativo.
+        </p>
       </div>
-    </form>
+    </div>
   );
 }
 
@@ -183,8 +198,7 @@ export default function Configuracion() {
           Configuración
         </h2>
         <p className="text-sm text-[var(--color-ink-700)] mt-2 max-w-xl">
-          Sesión activa, credenciales, preferencias del sistema e información
-          del entorno.
+          Sesión activa, preferencias del sistema e información del entorno.
         </p>
       </header>
 
@@ -200,7 +214,7 @@ export default function Configuracion() {
           </span>
         </header>
 
-        <div className="grid gap-px bg-[rgba(232,230,224,0.08)] md:grid-cols-2">
+        <div className="grid gap-px bg-[var(--color-border-hairline)] md:grid-cols-2">
           <div className="bg-[var(--color-ink-100)] p-5 space-y-1.5">
             <p className="mark text-[0.5rem] text-[var(--color-ink-600)]">
               Identificador
@@ -255,20 +269,7 @@ export default function Configuracion() {
         style={{ animationDelay: '120ms' }}
       >
         <header className="flex items-baseline justify-between mb-5">
-          <p className="mark text-[0.55rem]">§ II — Cambiar contraseña</p>
-          <span className="mark text-[0.5rem] text-[var(--color-ink-600)]">
-            JWT local
-          </span>
-        </header>
-        <PasswordForm />
-      </section>
-
-      <section
-        className="surface p-7 reveal"
-        style={{ animationDelay: '180ms' }}
-      >
-        <header className="flex items-baseline justify-between mb-5">
-          <p className="mark text-[0.55rem]">§ III — Preferencias</p>
+          <p className="mark text-[0.55rem]">§ II — Preferencias</p>
           <button
             type="button"
             onClick={() => prefs.reset()}
@@ -278,7 +279,9 @@ export default function Configuracion() {
           </button>
         </header>
 
-        <div className="grid gap-px bg-[rgba(232,230,224,0.08)] md:grid-cols-2">
+        <ThemeSelector />
+
+        <div className="grid gap-px bg-[var(--color-border-hairline)] md:grid-cols-2">
           <div className="bg-[var(--color-ink-100)] p-5 space-y-3">
             <p className="mark text-[0.5rem] text-[var(--color-ink-600)] mb-1.5">
               § Densidad de UI
@@ -395,7 +398,7 @@ export default function Configuracion() {
           </p>
         </header>
 
-        <div className="grid gap-px bg-[rgba(232,230,224,0.08)] md:grid-cols-4">
+        <div className="grid gap-px bg-[var(--color-border-hairline)] md:grid-cols-4">
           <div className="bg-[var(--color-ink-100)] p-5 space-y-1">
             <p className="mark text-[0.5rem] text-[var(--color-ink-600)]">
               Aplicación

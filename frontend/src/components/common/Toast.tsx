@@ -15,28 +15,28 @@ const TONE_STYLES: Record<
   jade: {
     borderClass: 'border-l-[var(--color-jade-500)]',
     barClass: 'bg-[var(--color-jade-500)]',
-    iconBg: 'bg-[rgba(61,139,106,0.14)]',
+    iconBg: 'bg-[var(--color-tint-jade-strong)]',
     iconColor: 'text-[var(--color-jade-500)]',
     label: 'Éxito',
   },
   cinnabar: {
     borderClass: 'border-l-[var(--color-cinnabar-500)]',
     barClass: 'bg-[var(--color-cinnabar-500)]',
-    iconBg: 'bg-[rgba(196,72,72,0.14)]',
+    iconBg: 'bg-[var(--color-tint-cinnabar-strong)]',
     iconColor: 'text-[var(--color-cinnabar-500)]',
     label: 'Error',
   },
   gold: {
     borderClass: 'border-l-[var(--color-gold-500)]',
     barClass: 'bg-[var(--color-gold-500)]',
-    iconBg: 'bg-[rgba(201,169,97,0.14)]',
+    iconBg: 'bg-[var(--color-tint-gold-strong)]',
     iconColor: 'text-[var(--color-gold-500)]',
     label: 'Atención',
   },
   ink: {
     borderClass: 'border-l-[var(--color-ink-700)]',
     barClass: 'bg-[var(--color-ink-600)]',
-    iconBg: 'bg-[rgba(232,230,224,0.08)]',
+    iconBg: 'bg-[var(--color-border-hairline)]',
     iconColor: 'text-[var(--color-ink-800)]',
     label: 'Información',
   },
@@ -121,7 +121,7 @@ export function Toast({ toast, onDismiss }: ToastProps) {
       aria-live="polite"
       aria-label={styles.label}
       className={cn(
-        'relative surface border border-[rgba(232,230,224,0.10)] border-l-[3px] overflow-hidden',
+        'relative surface border border-[var(--color-border-hairline-strong)] border-l-[3px] overflow-hidden',
         'animate-toast-in pointer-events-auto',
         styles.borderClass,
       )}

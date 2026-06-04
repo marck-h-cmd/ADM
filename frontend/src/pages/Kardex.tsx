@@ -256,7 +256,7 @@ export default function Kardex() {
       {producto && (
         <>
           <section
-            className="grid gap-px bg-[rgba(232,230,224,0.08)] md:grid-cols-4 reveal"
+            className="grid gap-px bg-[var(--color-border-hairline)] md:grid-cols-4 reveal"
             style={{ animationDelay: '120ms' }}
           >
             <div className="surface p-6 min-w-0">

@@ -21,6 +21,7 @@ const items: NavItem[] = [
   { to: '/compras/historial', num: '07', label: 'Historial de compras' },
   { to: '/kardex', num: '08', label: 'Kardex' },
   { to: '/reportes', num: '09', label: 'Reportes' },
+  { to: '/configuracion', num: '10', label: 'Configuración' },
 ];
 
 export function Sidebar() {
@@ -57,7 +58,7 @@ export function Sidebar() {
         aria-hidden
         onClick={() => setSidebar(false)}
         className={cn(
-          'lg:hidden fixed inset-0 z-30 bg-[rgba(5,5,7,0.72)] backdrop-blur-sm',
+          'lg:hidden fixed inset-0 z-30 bg-[var(--color-backdrop)] backdrop-blur-sm',
           'transition-opacity duration-300',
           sidebarOpen
             ? 'opacity-100 pointer-events-auto'

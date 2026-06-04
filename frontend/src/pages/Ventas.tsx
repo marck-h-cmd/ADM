@@ -108,7 +108,7 @@ export default function Ventas() {
               </p>
             </header>
 
-            <div className="text-center py-6 mb-6 border-y border-[rgba(232,230,224,0.08)]">
+            <div className="text-center py-6 mb-6 border-y border-[var(--color-border-hairline)]">
               <p className="mark text-[0.6rem] text-[var(--color-ink-600)]">
                 Total documento
               </p>

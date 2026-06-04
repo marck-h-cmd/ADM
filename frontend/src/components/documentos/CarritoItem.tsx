@@ -58,7 +58,7 @@ export function CarritoItem({ item, index, useStore }: CarritoItemProps) {
           }}
           className={cn(
             'w-12 h-9 text-center num text-sm bg-transparent',
-            'border-x border-[rgba(232,230,224,0.08)]',
+            'border-x border-[var(--color-border-hairline)]',
             'focus:outline-none focus:bg-[var(--color-ink-300)]',
           )}
         />

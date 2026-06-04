@@ -272,7 +272,7 @@ export function ClienteForm({
                 {fmt.percent(previewPct)} utilizado
               </p>
             </div>
-            <div className="h-1.5 w-full bg-[rgba(232,230,224,0.08)] relative overflow-hidden">
+            <div className="h-1.5 w-full bg-[var(--color-border-hairline)] relative overflow-hidden">
               <div
                 className={cn(
                   'h-full transition-all duration-500',

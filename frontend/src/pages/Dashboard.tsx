@@ -82,7 +82,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-10">
-      <section className="grid gap-px bg-[rgba(232,230,224,0.08)] md:grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-px bg-[var(--color-border-hairline)] md:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           mark="01"
           label="Ventas de hoy"
@@ -109,7 +109,7 @@ export default function Dashboard() {
         />
       </section>
 
-      <section className="grid gap-px bg-[rgba(232,230,224,0.08)] md:grid-cols-2 lg:grid-cols-3">
+      <section className="grid gap-px bg-[var(--color-border-hairline)] md:grid-cols-2 lg:grid-cols-3">
         <div className="surface p-7">
           <p className="mark text-[0.6rem] text-[var(--color-ink-600)]">Catálogo</p>
           <p className="num text-3xl mt-2 text-[var(--color-ink-900)]">
@@ -147,7 +147,7 @@ export default function Dashboard() {
             </h2>
             <span className="mark text-[0.55rem]">¶ Prioridad</span>
           </header>
-          <ul className="divide-y divide-[rgba(232,230,224,0.06)]">
+          <ul className="divide-y divide-[var(--color-tint-ink-soft)]">
             {alertas.map((a, i) => (
               <li
                 key={a.producto ?? i}

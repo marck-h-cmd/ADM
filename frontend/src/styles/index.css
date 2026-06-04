@@ -35,6 +35,102 @@
 @layer base {
   :root {
     color-scheme: dark;
+
+    /* Semantic variables — dark defaults */
+    --color-border-hairline: rgba(232, 230, 224, 0.08);
+    --color-border-hairline-strong: rgba(232, 230, 224, 0.18);
+    --color-backdrop: rgba(5, 5, 7, 0.72);
+    --color-backdrop-strong: rgba(5, 5, 7, 0.78);
+    --color-surface-tint: rgba(232, 230, 224, 0.02);
+    --color-tint-gold: rgba(201, 169, 97, 0.05);
+    --color-tint-gold-strong: rgba(201, 169, 97, 0.14);
+    --color-tint-jade: rgba(61, 139, 106, 0.05);
+    --color-tint-jade-strong: rgba(61, 139, 106, 0.14);
+    --color-tint-cinnabar: rgba(196, 72, 72, 0.05);
+    --color-tint-cinnabar-strong: rgba(196, 72, 72, 0.14);
+    --color-tint-ink: rgba(232, 230, 224, 0.04);
+    --color-tint-ink-soft: rgba(232, 230, 224, 0.06);
+
+    /* Atmospheric */
+    --grain-blend: overlay;
+    --grain-opacity: 0.035;
+  }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
+
+    /* Mirrored warm cream paper scale */
+    --color-ink-0: #fbfaf6;
+    --color-ink-50: #f5f3ec;
+    --color-ink-100: #edeae0;
+    --color-ink-200: #e0ddd0;
+    --color-ink-300: #c9c5b5;
+    --color-ink-400: #a8a394;
+    --color-ink-500: #7a7669;
+    --color-ink-600: #5a574d;
+    --color-ink-700: #3a3833;
+    --color-ink-800: #252420;
+    --color-ink-900: #1a1916;
+    --color-ink-950: #0a0907;
+
+    /* Gold deeper for AA contrast on cream */
+    --color-gold-50: #f5ecd3;
+    --color-gold-200: #d6b86a;
+    --color-gold-400: #a8893a;
+    --color-gold-500: #8a6f2c;
+    --color-gold-600: #6d5721;
+    --color-gold-700: #4a3a16;
+
+    --color-jade-500: #2f6e52;
+    --color-jade-600: #22543e;
+
+    --color-cinnabar-500: #a13838;
+    --color-cinnabar-600: #7a2828;
+
+    /* Semantic — light equivalents */
+    --color-border-hairline: rgba(10, 9, 7, 0.08);
+    --color-border-hairline-strong: rgba(10, 9, 7, 0.18);
+    --color-backdrop: rgba(20, 18, 14, 0.40);
+    --color-backdrop-strong: rgba(20, 18, 14, 0.52);
+    --color-surface-tint: rgba(10, 9, 7, 0.02);
+    --color-tint-gold: rgba(138, 111, 44, 0.06);
+    --color-tint-gold-strong: rgba(138, 111, 44, 0.14);
+    --color-tint-jade: rgba(47, 110, 82, 0.06);
+    --color-tint-jade-strong: rgba(47, 110, 82, 0.14);
+    --color-tint-cinnabar: rgba(161, 56, 56, 0.06);
+    --color-tint-cinnabar-strong: rgba(161, 56, 56, 0.14);
+    --color-tint-ink: rgba(10, 9, 7, 0.04);
+    --color-tint-ink-soft: rgba(10, 9, 7, 0.06);
+
+    /* Atmospheric */
+    --grain-blend: multiply;
+    --grain-opacity: 0.025;
+  }
+
+  /* Density — applied to <html data-density="compacta|normal|holgada">.
+     Default is "normal" (no override needed). The other two override the
+     row padding of the common table and a few list primitives, so the
+     preference is visible without changing every component class. */
+  :root[data-density="compacta"] tbody tr > td {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+  :root[data-density="compacta"] .divide-y > :not([hidden]) ~ :not([hidden]),
+  :root[data-density="compacta"] .divide-y > li,
+  :root[data-density="compacta"] .divide-y > * {
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+  }
+
+  :root[data-density="holgada"] tbody tr > td {
+    padding-top: 1.125rem;
+    padding-bottom: 1.125rem;
+  }
+  :root[data-density="holgada"] .divide-y > :not([hidden]) ~ :not([hidden]),
+  :root[data-density="holgada"] .divide-y > li,
+  :root[data-density="holgada"] .divide-y > * {
+    padding-top: 0.95rem;
+    padding-bottom: 0.95rem;
   }
 
   html,
@@ -54,19 +150,19 @@
     overflow-x: hidden;
   }
 
-  /* Grain texture overlay - subtle film grain */
+  /* Grain texture overlay — blend mode adapts to theme */
   body::before {
     content: "";
     position: fixed;
     inset: 0;
     pointer-events: none;
     z-index: 1;
-    opacity: 0.035;
-    mix-blend-mode: overlay;
+    opacity: var(--grain-opacity);
+    mix-blend-mode: var(--grain-blend);
     background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
   }
 
-  /* Atmospheric radial glow */
+  /* Atmospheric radial glow — uses active brand gold */
   body::after {
     content: "";
     position: fixed;
@@ -79,8 +175,8 @@
     z-index: 0;
     background: radial-gradient(
       ellipse at center,
-      rgba(201, 169, 97, 0.06) 0%,
-      rgba(201, 169, 97, 0.02) 30%,
+      color-mix(in srgb, var(--color-gold-500) 14%, transparent) 0%,
+      color-mix(in srgb, var(--color-gold-500) 5%, transparent) 30%,
       transparent 70%
     );
   }
@@ -134,15 +230,23 @@
 
   /* Hairline border */
   .hairline {
-    border: 1px solid rgba(232, 230, 224, 0.06);
+    border: 1px solid var(--color-border-hairline);
   }
 
   .hairline-t {
-    border-top: 1px solid rgba(232, 230, 224, 0.06);
+    border-top: 1px solid var(--color-border-hairline);
   }
 
   .hairline-b {
-    border-bottom: 1px solid rgba(232, 230, 224, 0.06);
+    border-bottom: 1px solid var(--color-border-hairline);
+  }
+
+  .hairline-l {
+    border-left: 1px solid var(--color-border-hairline);
+  }
+
+  .hairline-r {
+    border-right: 1px solid var(--color-border-hairline);
   }
 
   /* Decorative section marker */
@@ -157,7 +261,7 @@
   /* Surface card */
   .surface {
     background-color: var(--color-ink-200);
-    border: 1px solid rgba(232, 230, 224, 0.06);
+    border: 1px solid var(--color-border-hairline);
     border-radius: 2px;
   }
 

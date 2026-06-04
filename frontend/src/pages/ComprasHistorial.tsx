@@ -74,7 +74,7 @@ function CompraDetalleModal({
 
       {detalle && (
         <div className="space-y-7">
-          <section className="grid gap-px bg-[rgba(232,230,224,0.08)] md:grid-cols-2">
+          <section className="grid gap-px bg-[var(--color-border-hairline)] md:grid-cols-2">
             <div className="bg-[var(--color-ink-100)] p-5 space-y-2">
               <p className="mark text-[0.55rem] text-[var(--color-ink-600)]">
                 Recepcionado por
@@ -99,7 +99,7 @@ function CompraDetalleModal({
             </div>
           </section>
 
-          <section className="grid gap-px bg-[rgba(232,230,224,0.08)] md:grid-cols-3">
+          <section className="grid gap-px bg-[var(--color-border-hairline)] md:grid-cols-3">
             <div className="bg-[var(--color-ink-100)] p-4 space-y-1.5">
               <p className="mark text-[0.5rem] text-[var(--color-ink-600)]">
                 Fecha
@@ -374,7 +374,7 @@ export default function ComprasHistorial() {
       </section>
 
       <section
-        className="grid gap-px bg-[rgba(232,230,224,0.08)] md:grid-cols-4 reveal"
+        className="grid gap-px bg-[var(--color-border-hairline)] md:grid-cols-4 reveal"
         style={{ animationDelay: '90ms' }}
       >
         <div className="surface p-6">

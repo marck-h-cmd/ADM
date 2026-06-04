@@ -42,7 +42,7 @@ export function Modal({ open, onClose, title, mark, children, size = 'md', foote
       <button
         aria-label="Cerrar"
         onClick={onClose}
-        className="absolute inset-0 bg-[rgba(5,5,7,0.78)] backdrop-blur-sm"
+        className="absolute inset-0 bg-[var(--color-backdrop-strong)] backdrop-blur-sm"
       />
       <div
         className={cn(
@@ -71,7 +71,7 @@ export function Modal({ open, onClose, title, mark, children, size = 'md', foote
         )}
         <div className="px-7 py-6">{children}</div>
         {footer && (
-          <footer className="px-7 py-5 hairline-t bg-[rgba(232,230,224,0.02)]">
+          <footer className="px-7 py-5 hairline-t bg-[var(--color-surface-tint)]">
             {footer}
           </footer>
         )}

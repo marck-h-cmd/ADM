@@ -30,7 +30,7 @@ export function Pagination({ page, pages, onChange, className }: PaginationProps
         <button
           disabled={!canPrev}
           onClick={() => onChange(page - 1)}
-          className="h-8 w-8 grid place-items-center text-[var(--color-ink-700)] hairline hover:text-[var(--color-gold-500)] hover:border-[var(--color-gold-500)] disabled:opacity-30 disabled:hover:text-[var(--color-ink-700)] disabled:hover:border-[rgba(232,230,224,0.08)] transition"
+          className="h-8 w-8 grid place-items-center text-[var(--color-ink-700)] hairline hover:text-[var(--color-gold-500)] hover:border-[var(--color-gold-500)] disabled:opacity-30 disabled:hover:text-[var(--color-ink-700)] disabled:hover:border-[var(--color-border-hairline)] transition"
           aria-label="Anterior"
         >
           ‹
@@ -60,7 +60,7 @@ export function Pagination({ page, pages, onChange, className }: PaginationProps
         <button
           disabled={!canNext}
           onClick={() => onChange(page + 1)}
-          className="h-8 w-8 grid place-items-center text-[var(--color-ink-700)] hairline hover:text-[var(--color-gold-500)] hover:border-[var(--color-gold-500)] disabled:opacity-30 disabled:hover:text-[var(--color-ink-700)] disabled:hover:border-[rgba(232,230,224,0.08)] transition"
+          className="h-8 w-8 grid place-items-center text-[var(--color-ink-700)] hairline hover:text-[var(--color-gold-500)] hover:border-[var(--color-gold-500)] disabled:opacity-30 disabled:hover:text-[var(--color-ink-700)] disabled:hover:border-[var(--color-border-hairline)] transition"
           aria-label="Siguiente"
         >
           ›
