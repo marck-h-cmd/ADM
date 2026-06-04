@@ -57,7 +57,7 @@ export function Sidebar() {
         aria-hidden
         onClick={() => setSidebar(false)}
         className={cn(
-          'lg:hidden fixed inset-0 z-30 bg-[rgba(5,5,7,0.72)] backdrop-blur-sm',
+          'lg:hidden fixed inset-0 z-30 bg-[var(--color-backdrop)] backdrop-blur-sm',
           'transition-opacity duration-300',
           sidebarOpen
             ? 'opacity-100 pointer-events-auto'

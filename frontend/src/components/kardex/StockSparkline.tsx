@@ -14,7 +14,8 @@ interface StockSparklineProps {
 /**
  * Mini gráfico SVG inline. No usa dependencias externas.
  * Normaliza los datos al rango [0, 1] y dibuja una línea poligonal.
- * Muestra el área rellenada con un gradiente.
+ * El color del trazo y del área se hereda de `currentColor`, así que
+ * respeta el tema activo sin valores hardcoded.
  */
 export function StockSparkline({
   data,
@@ -23,11 +24,17 @@ export function StockSparkline({
   color = 'gold',
   className,
 }: StockSparklineProps) {
+  const colorClass = {
+    gold: 'text-[var(--color-gold-500)]',
+    jade: 'text-[var(--color-jade-500)]',
+    ink: 'text-[var(--color-ink-700)]',
+  } as const;
+
   if (data.length === 0) {
     return (
       <div
         className={cn(
-          'grid place-items-center border border-dashed border-[rgba(232,230,224,0.08)]',
+          'grid place-items-center border border-dashed border-[var(--color-border-hairline)]',
           className,
         )}
         style={{ width, height }}
@@ -64,42 +71,23 @@ export function StockSparkline({
       .join(' ') +
     ` L ${points[points.length - 1].x.toFixed(2)} ${(height - padY).toFixed(2)} Z`;
 
-  const colors = {
-    gold: { stroke: '#c9a961', fill: 'rgba(201,169,97,0.12)' },
-    jade: { stroke: '#3d8b6a', fill: 'rgba(61,139,106,0.12)' },
-    ink: { stroke: '#9c9a93', fill: 'rgba(232,230,224,0.06)' },
-  } as const;
-
-  const c = colors[color];
   const trend = data.length > 1 ? data[data.length - 1] - data[0] : 0;
   const trendUp = trend > 0;
   const trendDown = trend < 0;
 
   return (
-    <div className={cn('inline-flex flex-col gap-1.5', className)}>
+    <div className={cn('inline-flex flex-col gap-1.5', colorClass[color], className)}>
       <svg
         width={width}
         height={height}
         viewBox={`0 0 ${width} ${height}`}
         className="block"
       >
-        <defs>
-          <linearGradient
-            id={`spark-fill-${color}`}
-            x1="0"
-            y1="0"
-            x2="0"
-            y2="1"
-          >
-            <stop offset="0%" stopColor={c.fill} />
-            <stop offset="100%" stopColor="rgba(0,0,0,0)" />
-          </linearGradient>
-        </defs>
-        <path d={areaPath} fill={`url(#spark-fill-${color})`} />
+        <path d={areaPath} fill="currentColor" fillOpacity="0.14" />
         <path
           d={path}
           fill="none"
-          stroke={c.stroke}
+          stroke="currentColor"
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -109,7 +97,7 @@ export function StockSparkline({
             cx={points[points.length - 1].x}
             cy={points[points.length - 1].y}
             r="2.5"
-            fill={c.stroke}
+            fill="currentColor"
           />
         )}
         {points.length > 0 && (
@@ -117,7 +105,7 @@ export function StockSparkline({
             cx={points[points.length - 1].x}
             cy={points[points.length - 1].y}
             r="4"
-            fill={c.stroke}
+            fill="currentColor"
             opacity="0.25"
           />
         )}

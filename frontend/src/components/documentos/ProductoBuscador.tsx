@@ -107,10 +107,10 @@ export function ProductoBuscador({
           placeholder="Buscar por SKU o descripción…"
           className={cn(
             'w-full bg-[var(--color-ink-100)] text-[var(--color-ink-900)]',
-            'border border-[rgba(232,230,224,0.08)] pl-9 pr-3.5 h-12',
+            'border border-[var(--color-border-hairline)] pl-9 pr-3.5 h-12',
             'font-sans text-sm placeholder:text-[var(--color-ink-600)]',
             'transition-colors duration-200',
-            'hover:border-[rgba(232,230,224,0.18)]',
+            'hover:border-[var(--color-border-hairline-strong)]',
             'focus:outline-none focus:border-[var(--color-gold-500)]',
             'focus:bg-[var(--color-ink-200)]',
           )}

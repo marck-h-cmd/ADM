@@ -172,7 +172,7 @@ export default function Clientes() {
         </Button>
       </header>
 
-      <section className="grid gap-px bg-[rgba(232,230,224,0.08)] md:grid-cols-4 reveal" style={{ animationDelay: '60ms' }}>
+      <section className="grid gap-px bg-[var(--color-border-hairline)] md:grid-cols-4 reveal" style={{ animationDelay: '60ms' }}>
         <div className="surface p-6">
           <p className="mark text-[0.55rem] text-[var(--color-ink-600)]">
             Cartera total

@@ -11,9 +11,9 @@ export function TipoClienteChip({
   size?: 'sm' | 'md';
 }) {
   const variants = {
-    V: 'text-[var(--color-gold-500)] border-[var(--color-gold-500)]/40 bg-[rgba(201,169,97,0.05)]',
-    E: 'text-[var(--color-ink-900)] border-[var(--color-ink-700)]/30 bg-[rgba(232,230,224,0.04)]',
-    P: 'text-[var(--color-jade-500)] border-[var(--color-jade-500)]/40 bg-[rgba(61,139,106,0.05)]',
+    V: 'text-[var(--color-gold-500)] border-[var(--color-gold-500)]/40 bg-[var(--color-tint-gold)]',
+    E: 'text-[var(--color-ink-900)] border-[var(--color-ink-700)]/30 bg-[var(--color-tint-ink)]',
+    P: 'text-[var(--color-jade-500)] border-[var(--color-jade-500)]/40 bg-[var(--color-tint-jade)]',
     R: 'text-[var(--color-ink-600)] border-[var(--color-ink-700)]/20 bg-transparent',
   } as const;
 
@@ -104,7 +104,7 @@ export function CreditGauge({
       </div>
       <div
         className={cn(
-          'w-full bg-[rgba(232,230,224,0.08)] relative overflow-hidden',
+          'w-full bg-[var(--color-border-hairline)] relative overflow-hidden',
           size === 'sm' ? 'h-1' : 'h-1.5',
         )}
       >

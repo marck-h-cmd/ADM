@@ -2,6 +2,7 @@ import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUiStore } from '@/store/uiStore';
 import { Button } from '@/components/common/Button';
+import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { cn } from '@/utils/helpers';
 
 function routeTitle(path: string): { mark: string; title: string } {
@@ -72,7 +73,9 @@ export function Header() {
             <span className="mark text-[0.55rem]">en línea</span>
           </span>
 
-          <div className="flex items-center gap-3 pl-5 hairline-l" style={{ borderColor: 'rgba(232,230,224,0.08)' }}>
+          <ThemeToggle />
+
+          <div className="flex items-center gap-3 pl-5 hairline-l">
             <div className="hidden md:block text-right leading-tight">
               <p className="text-sm text-[var(--color-ink-900)]">
                 {user?.nombre ?? '—'}

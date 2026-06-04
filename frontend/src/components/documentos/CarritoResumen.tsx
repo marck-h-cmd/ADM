@@ -46,7 +46,7 @@ export function CarritoResumen({
           </p>
         </div>
       ) : (
-        <ul className="divide-y divide-[rgba(232,230,224,0.06)]">
+        <ul className="divide-y divide-[var(--color-tint-ink-soft)]">
           {items.map((it, i) => (
             <CarritoItem
               key={it.producto}

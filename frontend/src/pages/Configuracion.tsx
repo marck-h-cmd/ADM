@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
 import { usePreferencesStore, type DensidadUI, type FormatoFecha, type FormatoMoneda } from '@/store/preferencesStore';
+import { useTheme } from '@/hooks/useTheme';
 import { Field, Input, Select } from '@/components/common/Input';
 import { Button } from '@/components/common/Button';
 import { Alert } from '@/components/common/Alert';
 import { PasswordInput } from '@/components/common/PasswordInput';
 import { APP_NAME, APP_TAGLINE } from '@/utils/constants';
 import { cn } from '@/utils/helpers';
+import type { ThemeMode } from '@/store/themeStore';
 
 function Toggle({
   checked,
@@ -53,6 +55,53 @@ function Toggle({
         )}
       </div>
     </label>
+  );
+}
+
+function ThemeSelector() {
+  const { theme, resolved, setTheme } = useTheme();
+  const options: { key: ThemeMode; label: string; mark: string }[] = [
+    { key: 'light', label: 'Claro', mark: '01' },
+    { key: 'dark', label: 'Oscuro', mark: '02' },
+    { key: 'system', label: 'Sistema', mark: '03' },
+  ];
+  return (
+    <div className="mb-px bg-[var(--color-border-hairline)]">
+      <div className="bg-[var(--color-ink-100)] p-5 space-y-3">
+        <div className="flex items-baseline justify-between">
+          <p className="mark text-[0.5rem] text-[var(--color-ink-600)]">
+            § Apariencia
+          </p>
+          <span className="mark text-[0.5rem] text-[var(--color-ink-600)]">
+            activo: {theme === 'system' ? `sistema · ${resolved === 'dark' ? 'oscuro' : 'claro'}` : theme === 'dark' ? 'oscuro' : 'claro'}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          {options.map((o) => {
+            const active = theme === o.key;
+            return (
+              <button
+                key={o.key}
+                type="button"
+                onClick={() => setTheme(o.key)}
+                className={cn(
+                  'mark text-[0.55rem] px-3 py-1.5 hairline transition-all capitalize inline-flex items-center gap-2',
+                  active
+                    ? 'bg-[var(--color-ink-900)] text-[var(--color-ink-50)] border-[var(--color-ink-900)]'
+                    : 'text-[var(--color-ink-700)] hover:border-[var(--color-ink-700)]',
+                )}
+              >
+                <span className="text-[0.5rem] opacity-70">{o.mark}</span>
+                {o.label}
+              </button>
+            );
+          })}
+        </div>
+        <p className="mark text-[0.5rem] text-[var(--color-ink-600)]">
+          Sistema sigue la preferencia del sistema operativo.
+        </p>
+      </div>
+    </div>
   );
 }
 
@@ -200,7 +249,7 @@ export default function Configuracion() {
           </span>
         </header>
 
-        <div className="grid gap-px bg-[rgba(232,230,224,0.08)] md:grid-cols-2">
+        <div className="grid gap-px bg-[var(--color-border-hairline)] md:grid-cols-2">
           <div className="bg-[var(--color-ink-100)] p-5 space-y-1.5">
             <p className="mark text-[0.5rem] text-[var(--color-ink-600)]">
               Identificador
@@ -278,7 +327,9 @@ export default function Configuracion() {
           </button>
         </header>
 
-        <div className="grid gap-px bg-[rgba(232,230,224,0.08)] md:grid-cols-2">
+        <ThemeSelector />
+
+        <div className="grid gap-px bg-[var(--color-border-hairline)] md:grid-cols-2">
           <div className="bg-[var(--color-ink-100)] p-5 space-y-3">
             <p className="mark text-[0.5rem] text-[var(--color-ink-600)] mb-1.5">
               § Densidad de UI
@@ -395,7 +446,7 @@ export default function Configuracion() {
           </p>
         </header>
 
-        <div className="grid gap-px bg-[rgba(232,230,224,0.08)] md:grid-cols-4">
+        <div className="grid gap-px bg-[var(--color-border-hairline)] md:grid-cols-4">
           <div className="bg-[var(--color-ink-100)] p-5 space-y-1">
             <p className="mark text-[0.5rem] text-[var(--color-ink-600)]">
               Aplicación

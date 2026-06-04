@@ -207,7 +207,7 @@ function VentasTab() {
         </div>
       </section>
 
-      <section className="grid gap-px bg-[rgba(232,230,224,0.08)] md:grid-cols-4">
+      <section className="grid gap-px bg-[var(--color-border-hairline)] md:grid-cols-4">
         <div className="surface p-6">
           <p className="mark text-[0.55rem] text-[var(--color-ink-600)]">
             Total vendido
@@ -412,7 +412,7 @@ function RotacionTab() {
         </div>
       </section>
 
-      <section className="grid gap-px bg-[rgba(232,230,224,0.08)] md:grid-cols-3">
+      <section className="grid gap-px bg-[var(--color-border-hairline)] md:grid-cols-3">
         <div className="surface p-6">
           <p className="mark text-[0.55rem] text-[var(--color-ink-600)]">
             SKUs con rotación
@@ -546,7 +546,7 @@ function ValorizacionTab() {
         />
       </section>
 
-      <section className="grid gap-px bg-[rgba(232,230,224,0.08)] md:grid-cols-2">
+      <section className="grid gap-px bg-[var(--color-border-hairline)] md:grid-cols-2">
         <div className="surface p-6">
           <p className="mark text-[0.55rem] text-[var(--color-ink-600)]">
             SKUs valorizados
@@ -701,7 +701,7 @@ function VencimientosTab() {
         />
       </section>
 
-      <section className="grid gap-px bg-[rgba(232,230,224,0.08)] md:grid-cols-4">
+      <section className="grid gap-px bg-[var(--color-border-hairline)] md:grid-cols-4">
         <div className="surface p-6">
           <p className="mark text-[0.55rem] text-[var(--color-ink-600)]">
             Cuotas pendientes
