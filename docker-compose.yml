@@ -32,58 +32,46 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - DB_HOST=postgres
-      - DB_PORT=5432
+      - DB_HOST=mssql
+      - DB_PORT=1433
       - DB_NAME=tenebrosa
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
+      - DB_USER=sa
+      - DB_PASSWORD=StrongPassword123!
       - JWT_SECRET=${JWT_SECRET:-mi_secreto_super_seguro_para_jwt_2024}
       - JWT_EXPIRES_IN=7d
       - CORS_ORIGIN=http://localhost:8080,http://localhost:3000
     depends_on:
-      - postgres
+      mssql:
+        condition: service_healthy
+    volumes:
+      - ./frontend/init.sql:/app/init.sql
     networks:
       - tenebrosa-network
     restart: unless-stopped
 
-  postgres:
-    image: postgres:16-alpine
-    container_name: tenebrosa-postgres
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: tenebrosa-mssql
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=tenebrosa
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=StrongPassword123!
+      - MSSQL_PID=Developer
     ports:
-      - "5433:5432"
+      - "14333:1433"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./frontend/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - mssql_data:/var/opt/mssql
     networks:
       - tenebrosa-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P StrongPassword123! -Q 'SELECT 1' -C"]
       interval: 10s
       timeout: 5s
       retries: 5
-
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: tenebrosa-pgadmin
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
-      - PGADMIN_DEFAULT_PASSWORD=admin
-    ports:
-      - "5050:80"
-    depends_on:
-      - postgres
-    networks:
-      - tenebrosa-network
-    restart: unless-stopped
 
 networks:
   tenebrosa-network:
     driver: bridge
 
 volumes:
-  postgres_data:
+  mssql_data:

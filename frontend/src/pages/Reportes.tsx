@@ -202,7 +202,7 @@ function VentasTab() {
           <ExportButton
             filename={`ventas-${fechaInicio}-${fechaFin}`}
             rows={data as unknown as Record<string, unknown>[]}
-            label="Exportar CSV"
+            label="Exportar Excel 📊"
           />
         </div>
       </section>

@@ -12,14 +12,14 @@ export const clienteService = {
               c."Ruc", c."Direccion", c."Calificacion", c."genero"
        FROM CLIENTE c
        LEFT JOIN ZONA z ON z."Zona" = c."Zona"
-       WHERE c."Nombre" ILIKE $1 OR c."Cliente" ILIKE $1 OR c."Ruc" ILIKE $1
+       WHERE c."Nombre" LIKE $1 OR c."Cliente" LIKE $1 OR c."Ruc" LIKE $1
        ORDER BY c."Nombre"
-       LIMIT $2 OFFSET $3`,
+       OFFSET $3 ROWS FETCH NEXT $2 ROWS ONLY`,
       [`%${search}%`, limit, offset]
     );
 
     const countResult = await query(
-      `SELECT COUNT(*) FROM CLIENTE WHERE "Nombre" ILIKE $1 OR "Cliente" ILIKE $1`,
+      `SELECT COUNT(*) as count FROM CLIENTE WHERE "Nombre" LIKE $1 OR "Cliente" LIKE $1`,
       [`%${search}%`]
     );
 
@@ -44,7 +44,7 @@ export const clienteService = {
     const result = await query<Cliente>(
       `SELECT "Cliente", "Nombre", "Saldo", "topeCredito", "TipoCliente", "credito", "Zona"
        FROM CLIENTE
-       WHERE "credito" = TRUE
+       WHERE "credito" = 1
        ORDER BY "Nombre"`
     );
     return result.rows;
@@ -88,11 +88,11 @@ export const clienteService = {
 
     const result = await query<Cliente>(
       `INSERT INTO CLIENTE ("Cliente", "Zona", "Nombre", "Direccion", "Ruc", "credito", "topeCredito", "TipoCliente", "Calificacion", "idRepresentante", "genero")
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-       RETURNING *`,
+       OUTPUT INSERTED.*
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
       [data.Cliente, data.Zona, data.Nombre, data.Direccion || null, data.Ruc || null, 
-       data.credito || false, data.topeCredito || 0, data.TipoCliente || 'R', 
-       data.Calificacion || null, data.idRepresentante || 1, data.genero || 'M']
+       data.credito ? 1 : 0, data.topeCredito || 0, data.TipoCliente || 'R', 
+       data.Calificacion || null, data.idRepresentante || '01', data.genero || 'M']
     );
     return result.rows[0];
   },
@@ -136,7 +136,7 @@ export const clienteService = {
     }
     if (data.credito !== undefined) {
       fields.push(`"credito" = $${index++}`);
-      values.push(data.credito);
+      values.push(data.credito ? 1 : 0);
     }
     if (data.topeCredito !== undefined) {
       fields.push(`"topeCredito" = $${index++}`);
@@ -155,7 +155,7 @@ export const clienteService = {
 
     values.push(clienteId);
     const result = await query<Cliente>(
-      `UPDATE CLIENTE SET ${fields.join(', ')} WHERE "Cliente" = $${index} RETURNING *`,
+      `UPDATE CLIENTE SET ${fields.join(', ')} OUTPUT INSERTED.* WHERE "Cliente" = $${index}`,
       values
     );
     return result.rows[0] || null;
@@ -164,7 +164,7 @@ export const clienteService = {
   async updateSaldo(clienteId: string, monto: number, tipo: 'incrementar' | 'disminuir'): Promise<Cliente | null> {
     const operacion = tipo === 'incrementar' ? '+' : '-';
     const result = await query<Cliente>(
-      `UPDATE CLIENTE SET "Saldo" = "Saldo" ${operacion} $1 WHERE "Cliente" = $2 RETURNING *`,
+      `UPDATE CLIENTE SET "Saldo" = "Saldo" ${operacion} $1 OUTPUT INSERTED.* WHERE "Cliente" = $2`,
       [Math.abs(monto), clienteId]
     );
     return result.rows[0] || null;
@@ -173,7 +173,7 @@ export const clienteService = {
   async delete(clienteId: string): Promise<boolean> {
     // Verificar si el cliente tiene documentos asociados
     const checkResult = await query(
-      `SELECT COUNT(*) FROM DOCUMENTO WHERE "Cliente" = $1`,
+      `SELECT COUNT(*) as count FROM DOCUMENTO WHERE "Cliente" = $1`,
       [clienteId]
     );
     
@@ -189,7 +189,7 @@ export const clienteService = {
     const result = await query(`
       SELECT 
         COUNT(*) as total,
-        SUM(CASE WHEN "credito" = TRUE THEN 1 ELSE 0 END) as conCredito,
+        SUM(CASE WHEN "credito" = 1 THEN 1 ELSE 0 END) as conCredito,
         SUM(CASE WHEN "TipoCliente" = 'V' THEN 1 ELSE 0 END) as vip,
         SUM(CASE WHEN "TipoCliente" = 'E' THEN 1 ELSE 0 END) as empresas,
         SUM("Saldo") as saldoTotal

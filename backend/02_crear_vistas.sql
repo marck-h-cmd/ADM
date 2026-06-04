@@ -1,13 +1,15 @@
 -- ============================================
 -- SISTEMA DE CONTROL DE INVENTARIO Y KARDEX
--- FASE 2: CREACIÓN DE VISTAS
+-- FASE 2: CREACIÓN DE VISTAS (SQL SERVER)
 -- ============================================
+
+SET QUOTED_IDENTIFIER ON;
 
 -- ============================================
 -- VISTAS DE ANÁLISIS
 -- ============================================
 
-CREATE OR REPLACE VIEW v_Documento AS
+CREATE OR ALTER VIEW v_Documento AS
 SELECT 
     d1."Documento",
     d1."TipoDoc",
@@ -20,8 +22,9 @@ SELECT
 FROM DOCUMENTO d1 
 INNER JOIN DETADOC dd1 ON d1."Documento" = dd1."Documento" AND d1."TipoDoc" = dd1."TipoDoc"
 GROUP BY d1."Documento", d1."TipoDoc", d1."Fecha", d1."Cliente", d1."Personal", d1."Estado", d1."pagado";
+GO
 
-CREATE OR REPLACE VIEW v_cronograma AS
+CREATE OR ALTER VIEW v_cronograma AS
 SELECT 
     "Documento",
     "TipoDoc",
@@ -29,8 +32,9 @@ SELECT
     SUM(CASE WHEN "estado" = 'C' THEN "Importe" ELSE 0 END) AS cancelado
 FROM CRONOGRAMA 
 GROUP BY "Documento", "TipoDoc";
+GO
 
-CREATE OR REPLACE VIEW v_Ventas AS
+CREATE OR ALTER VIEW v_Ventas AS
 SELECT 
     CLIENTE."Cliente",
     CLIENTE."Zona",
@@ -52,12 +56,13 @@ WHERE DOCUMENTO."TipoDoc" IN ('B', 'F')
 GROUP BY CLIENTE."Cliente", CLIENTE."Zona", CLIENTE."Nombre", CLIENTE."TipoCliente",
          DOCUMENTO."Fecha", DOCUMENTO."pagado", DOCUMENTO."Personal",
          PRODUCTO."Producto", PRODUCTO."Marca", PRODUCTO."Descripcion";
+GO
 
-CREATE OR REPLACE VIEW v_VentasPrevio AS
+CREATE OR ALTER VIEW v_VentasPrevio AS
 SELECT 
-    EXTRACT(YEAR FROM vd."Fecha") AS anual,
-    EXTRACT(MONTH FROM vd."Fecha") AS Mes,
-    EXTRACT(DAY FROM vd."Fecha") AS Dia,
+    YEAR(vd."Fecha") AS anual,
+    MONTH(vd."Fecha") AS Mes,
+    DAY(vd."Fecha") AS Dia,
     vd."Cliente",
     c."Nombre" AS NomCliente,
     c."Zona",
@@ -67,11 +72,12 @@ SELECT
 FROM v_Documento vd 
 INNER JOIN CLIENTE c ON vd."Cliente" = c."Cliente"
 WHERE vd."TipoDoc" IN ('B', 'F');
+GO
 
-CREATE OR REPLACE VIEW _Otros AS
+CREATE OR ALTER VIEW _Otros AS
 SELECT DISTINCT 
-    EXTRACT(YEAR FROM d."Fecha") AS anual,
-    EXTRACT(MONTH FROM d."Fecha") AS mes,
+    YEAR(d."Fecha") AS anual,
+    MONTH(d."Fecha") AS mes,
     SUM(dd."Cantidad" * dd."PrecUnit") AS monto,
     d."Personal",
     p."Descripcion" AS prod,
@@ -83,21 +89,23 @@ INNER JOIN PRODUCTO p ON p."Producto" = dd."Producto"
 INNER JOIN MARCA m ON m."Marca" = p."Marca"
 INNER JOIN LINEA l ON l."Linea" = m."Linea"
 WHERE d."Cliente" IS NOT NULL AND d."TipoDoc" IN ('B', 'F')
-GROUP BY EXTRACT(YEAR FROM d."Fecha"), EXTRACT(MONTH FROM d."Fecha"), d."Personal",
+GROUP BY YEAR(d."Fecha"), MONTH(d."Fecha"), d."Personal",
          p."Descripcion", m."Descripcion", l."Descripcion";
+GO
 
-CREATE OR REPLACE VIEW v_dimTiempo AS
+CREATE OR ALTER VIEW v_dimTiempo AS
 SELECT DISTINCT 
-    EXTRACT(YEAR FROM d."Fecha") AS Anual,
-    EXTRACT(YEAR FROM d."Fecha")::TEXT || CASE WHEN EXTRACT(MONTH FROM d."Fecha") < 7 THEN '-S1' ELSE '-S2' END AS Semestre,
-    EXTRACT(QUARTER FROM d."Fecha") AS Trimestre,
-    TO_CHAR(d."Fecha", 'Month') AS Mes,
-    TO_CHAR(d."Fecha", 'Day') AS DiaSemana,
-    EXTRACT(MONTH FROM d."Fecha") AS NroMes,
-    TO_CHAR(d."Fecha", 'DD/MM/YYYY') AS idFecha
+    YEAR(d."Fecha") AS Anual,
+    CAST(YEAR(d."Fecha") AS VARCHAR(10)) + CASE WHEN MONTH(d."Fecha") < 7 THEN '-S1' ELSE '-S2' END AS Semestre,
+    DATEPART(quarter, d."Fecha") AS Trimestre,
+    DATENAME(month, d."Fecha") AS Mes,
+    DATENAME(weekday, d."Fecha") AS DiaSemana,
+    MONTH(d."Fecha") AS NroMes,
+    CONVERT(VARCHAR(10), d."Fecha", 103) AS idFecha
 FROM DOCUMENTO d;
+GO
 
-CREATE OR REPLACE VIEW v_VentasDetalladas AS
+CREATE OR ALTER VIEW v_VentasDetalladas AS
 SELECT 
     DOCUMENTO."Documento",
     DOCUMENTO."TipoDoc",
@@ -108,6 +116,7 @@ SELECT
 FROM CLIENTE 
 INNER JOIN DOCUMENTO ON CLIENTE."Cliente" = DOCUMENTO."Cliente"
 WHERE DOCUMENTO."TipoDoc" IN ('B', 'F');
+GO
 
 -- ============================================
 -- FIN DE CREACIÓN DE VISTAS

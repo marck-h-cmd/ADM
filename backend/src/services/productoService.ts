@@ -13,14 +13,14 @@ export const productoService = {
               m."Descripcion" as "MarcaDesc"
        FROM PRODUCTO p
        LEFT JOIN MARCA m ON m."Marca" = p."Marca"
-       WHERE p."Descripcion" ILIKE $1 OR p."Producto" ILIKE $1
+       WHERE p."Descripcion" LIKE $1 OR p."Producto" LIKE $1
        ORDER BY p."Producto"
-       LIMIT $2 OFFSET $3`,
+       OFFSET $3 ROWS FETCH NEXT $2 ROWS ONLY`,
       [`%${search}%`, limit, offset]
     );
 
     const countResult = await query(
-      `SELECT COUNT(*) FROM PRODUCTO WHERE "Descripcion" ILIKE $1 OR "Producto" ILIKE $1`,
+      `SELECT COUNT(*) as count FROM PRODUCTO WHERE "Descripcion" LIKE $1 OR "Producto" LIKE $1`,
       [`%${search}%`]
     );
 
@@ -53,10 +53,9 @@ export const productoService = {
 
   async search(queryText: string): Promise<Producto[]> {
     const result = await query<Producto>(
-      `SELECT "Producto", "Descripcion", "PrecVenta", "StockAc", "Marca"
+      `SELECT TOP 20 "Producto", "Descripcion", "PrecVenta", "StockAc", "Marca"
        FROM PRODUCTO
-       WHERE "Descripcion" ILIKE $1 OR "Producto" ILIKE $1
-       LIMIT 20`,
+       WHERE "Descripcion" LIKE $1 OR "Producto" LIKE $1`,
       [`%${queryText}%`]
     );
     return result.rows;
@@ -72,10 +71,10 @@ export const productoService = {
 
     const result = await query<Producto>(
       `INSERT INTO PRODUCTO ("Producto", "Marca", "Descripcion", "StockAc", "StockMax", "StockMin", "PrecVenta", "PrecCosto", "Peso", "ConIgv", "UniMed")
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-       RETURNING *`,
+       OUTPUT INSERTED.*
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
       [data.Producto, data.Marca, data.Descripcion, data.StockAc || 0, data.StockMax || 0, 
-       data.StockMin || 0, data.PrecVenta, data.PrecCosto, data.Peso || 0, data.ConIgv || true, data.UniMed || 'UNIDAD']
+       data.StockMin || 0, data.PrecVenta, data.PrecCosto, data.Peso || 0, data.ConIgv ? 1 : 0, data.UniMed || 'UNIDAD']
     );
     return result.rows[0];
   },
@@ -121,7 +120,7 @@ export const productoService = {
     }
     if (data.ConIgv !== undefined) {
       fields.push(`"ConIgv" = $${index++}`);
-      values.push(data.ConIgv);
+      values.push(data.ConIgv ? 1 : 0);
     }
     if (data.Peso !== undefined) {
       fields.push(`"Peso" = $${index++}`);
@@ -132,7 +131,7 @@ export const productoService = {
 
     values.push(productoId);
     const result = await query<Producto>(
-      `UPDATE PRODUCTO SET ${fields.join(', ')} WHERE "Producto" = $${index} RETURNING *`,
+      `UPDATE PRODUCTO SET ${fields.join(', ')} OUTPUT INSERTED.* WHERE "Producto" = $${index}`,
       values
     );
     return result.rows[0] || null;
@@ -141,7 +140,7 @@ export const productoService = {
   async updateStock(productoId: string, cantidad: number, tipo: 'ingreso' | 'salida'): Promise<Producto | null> {
     const signo = tipo === 'ingreso' ? '+' : '-';
     const result = await query<Producto>(
-      `UPDATE PRODUCTO SET "StockAc" = "StockAc" ${signo} $1 WHERE "Producto" = $2 RETURNING *`,
+      `UPDATE PRODUCTO SET "StockAc" = "StockAc" ${signo} $1 OUTPUT INSERTED.* WHERE "Producto" = $2`,
       [Math.abs(cantidad), productoId]
     );
     return result.rows[0] || null;
@@ -150,7 +149,7 @@ export const productoService = {
   async delete(productoId: string): Promise<boolean> {
     // Verificar si el producto tiene movimientos
     const checkResult = await query(
-      `SELECT COUNT(*) FROM DETADOC WHERE "Producto" = $1`,
+      `SELECT COUNT(*) as count FROM DETADOC WHERE "Producto" = $1`,
       [productoId]
     );
     

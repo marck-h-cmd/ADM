@@ -434,3 +434,175 @@ export async function exportKardexExcel({ producto, stats, filtros, items }: Exp
   document.body.removeChild(a);
   window.URL.revokeObjectURL(url);
 }
+
+/**
+ * Exporta cualquier conjunto de datos de reporte a Excel con un diseño premium y adaptado.
+ */
+export async function exportExcel(
+  filename: string,
+  title: string,
+  rows: Record<string, unknown>[],
+  columns?: string[],
+) {
+  if (rows.length === 0) return;
+
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet(title.slice(0, 31));
+
+  // Configurar visualización de líneas de cuadrícula
+  worksheet.views = [{ showGridLines: true }];
+
+  // 1. BRANDING HEADER (Cabecera Corporativa)
+  worksheet.mergeCells('A1:H1');
+  const titleCell = worksheet.getCell('A1');
+  titleCell.value = 'TENEBROSA - SISTEMA DE CONTROL DE INVENTARIO';
+  titleCell.font = { name: 'Arial', size: 16, bold: true, color: { argb: 'FFC9A961' } }; // Color Oro
+  titleCell.alignment = { vertical: 'middle', horizontal: 'left' };
+  worksheet.getRow(1).height = 30;
+
+  worksheet.mergeCells('A2:H2');
+  const subtitleCell = worksheet.getCell('A2');
+  subtitleCell.value = `Reporte: ${title}`;
+  subtitleCell.font = { name: 'Arial', size: 10, italic: true, color: { argb: 'FF8585A0' } }; // Ink Muted
+  subtitleCell.alignment = { vertical: 'middle', horizontal: 'left' };
+  worksheet.getRow(2).height = 18;
+
+  // Línea decorativa dorada
+  worksheet.getRow(3).height = 4;
+  const colsCount = columns ? columns.length : Object.keys(rows[0]).length;
+  const maxCols = Math.max(colsCount, 8);
+  for (let c = 1; c <= maxCols; c++) {
+    worksheet.getRow(3).getCell(c).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFC9A961' }
+    };
+  }
+
+  worksheet.addRow([]); // Espaciador
+
+  // 2. CABECERA DE LA TABLA
+  const cols = columns ?? Object.keys(rows[0]);
+  const tableHeaderRow = worksheet.getRow(5);
+  
+  const formatHeader = (key: string) => {
+    const words = key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').trim().split(' ');
+    return words.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+  };
+
+  tableHeaderRow.values = cols.map(c => formatHeader(c));
+  tableHeaderRow.height = 24;
+
+  const headerStyle = {
+    font: { name: 'Arial', size: 9, bold: true, color: { argb: 'FFC9A961' } },
+    fill: {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF13131A' } // Dark Ink
+    },
+    alignment: { vertical: 'middle', horizontal: 'left' },
+    border: {
+      bottom: { style: 'medium', color: { argb: 'FFC9A961' } }
+    }
+  } as const;
+
+  const getColConfig = (key: string) => {
+    const k = key.toLowerCase();
+    if (k.includes('total') || k.includes('monto') || k.includes('precio') || k.includes('importe') || k.includes('pagado') || k.includes('ticket') || k.includes('costo') || k.includes('venta') || k.includes('utilidad') || k.includes('ingreso')) {
+      return { align: 'right', numFmt: 'S/ #,##0.00', type: 'currency' };
+    }
+    if (k.includes('cantidad') || k.includes('stock') || k.includes('veces') || k.includes('productos') || k.includes('cuota') || k.includes('dias') || k.includes('ventas')) {
+      return { align: 'right', numFmt: '#,##0', type: 'number' };
+    }
+    if (k.includes('fecha') || k.includes('vence') || k.includes('primera') || k.includes('ultima')) {
+      return { align: 'left', numFmt: undefined, type: 'date' };
+    }
+    return { align: 'left', numFmt: undefined, type: 'text' };
+  };
+
+  for (let c = 1; c <= cols.length; c++) {
+    const key = cols[c - 1];
+    const conf = getColConfig(key);
+    const cell = tableHeaderRow.getCell(c);
+    cell.font = headerStyle.font;
+    cell.fill = headerStyle.fill;
+    cell.alignment = { vertical: 'middle', horizontal: conf.align as 'left' | 'right' };
+    cell.border = headerStyle.border;
+  }
+
+  // 3. FILAS DE DATOS
+  let currentRowNum = 6;
+  rows.forEach((row, index) => {
+    const r = worksheet.getRow(currentRowNum);
+    const isEven = index % 2 === 0;
+    const rowBg = isEven ? 'FFFFFFFF' : 'FFF9F9F9';
+
+    cols.forEach((colKey, cIdx) => {
+      const cell = r.getCell(cIdx + 1);
+      const val = row[colKey];
+      const conf = getColConfig(colKey);
+
+      if (val == null) {
+        cell.value = '—';
+      } else if (conf.type === 'date') {
+        const d = new Date(val as string);
+        if (!isNaN(d.getTime())) {
+          cell.value = d.toLocaleDateString('es-PE') + ' ' + d.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+        } else {
+          cell.value = String(val);
+        }
+      } else if (conf.type === 'currency' || conf.type === 'number') {
+        cell.value = Number(val);
+      } else {
+        cell.value = String(val);
+      }
+
+      cell.font = { name: 'Arial', size: 9, color: { argb: 'FF13131A' } };
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: rowBg }
+      };
+      cell.border = {
+        bottom: { style: 'thin', color: { argb: 'FFE8E6E0' } }
+      };
+      cell.alignment = { vertical: 'middle', horizontal: conf.align as 'left' | 'right' };
+      if (conf.numFmt) {
+        cell.numFmt = conf.numFmt;
+      }
+    });
+
+    r.height = 20;
+    currentRowNum++;
+  });
+
+  // Calcular anchos de columna dinámicamente
+  worksheet.columns = cols.map((colKey) => {
+    let maxLen = formatHeader(colKey).length + 4;
+    rows.forEach(row => {
+      const val = row[colKey];
+      if (val != null) {
+        let str = String(val);
+        const conf = getColConfig(colKey);
+        if (conf.type === 'currency') str = 'S/ ' + Number(val).toFixed(2);
+        maxLen = Math.max(maxLen, str.length + 3);
+      }
+    });
+    return { key: colKey, width: Math.min(Math.max(maxLen, 12), 40) };
+  });
+
+  // 4. ESCRIBIR BUFFER Y DESCARGAR
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  const finalFilename = filename.endsWith('.xlsx') ? filename : `${filename}.xlsx`;
+  a.download = finalFilename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
+}
+

@@ -6,15 +6,15 @@ export const dashboardService = {
     const ventasHoy = await query(`
       SELECT COALESCE(SUM("pagado"), 0) as total, COUNT(*) as cantidad
       FROM DOCUMENTO
-      WHERE "Fecha"::date = CURRENT_DATE AND "TipoDoc" IN ('B', 'F')
+      WHERE CAST("Fecha" AS DATE) = CAST(GETDATE() AS DATE) AND "TipoDoc" IN ('B', 'F')
     `);
     
     // Ventas del mes
     const ventasMes = await query(`
       SELECT COALESCE(SUM("pagado"), 0) as total, COUNT(*) as cantidad
       FROM DOCUMENTO
-      WHERE EXTRACT(YEAR FROM "Fecha") = EXTRACT(YEAR FROM CURRENT_DATE)
-        AND EXTRACT(MONTH FROM "Fecha") = EXTRACT(MONTH FROM CURRENT_DATE)
+      WHERE YEAR("Fecha") = YEAR(GETDATE())
+        AND MONTH("Fecha") = MONTH(GETDATE())
         AND "TipoDoc" IN ('B', 'F')
     `);
     
@@ -22,32 +22,32 @@ export const dashboardService = {
     const ventasAnio = await query(`
       SELECT COALESCE(SUM("pagado"), 0) as total
       FROM DOCUMENTO
-      WHERE EXTRACT(YEAR FROM "Fecha") = EXTRACT(YEAR FROM CURRENT_DATE)
+      WHERE YEAR("Fecha") = YEAR(GETDATE())
         AND "TipoDoc" IN ('B', 'F')
     `);
     
     // Productos con stock bajo
-    const stockBajo = await query(`SELECT COUNT(*) FROM Productos_StockCritico()`);
+    const stockBajo = await query(`SELECT COUNT(*) as count FROM Productos_StockCritico()`);
     
     // Total productos
-    const totalProductos = await query(`SELECT COUNT(*) FROM PRODUCTO`);
+    const totalProductos = await query(`SELECT COUNT(*) as count FROM PRODUCTO`);
     
     // Total clientes
-    const totalClientes = await query(`SELECT COUNT(*) FROM CLIENTE`);
+    const totalClientes = await query(`SELECT COUNT(*) as count FROM CLIENTE`);
     
     // Ventas del día anterior (para comparación)
     const ventasAyer = await query(`
       SELECT COALESCE(SUM("pagado"), 0) as total
       FROM DOCUMENTO
-      WHERE "Fecha"::date = CURRENT_DATE - INTERVAL '1 day' AND "TipoDoc" IN ('B', 'F')
+      WHERE CAST("Fecha" AS DATE) = DATEADD(day, -1, CAST(GETDATE() AS DATE)) AND "TipoDoc" IN ('B', 'F')
     `);
     
     // Ventas del mes anterior
     const ventasMesAnterior = await query(`
       SELECT COALESCE(SUM("pagado"), 0) as total
       FROM DOCUMENTO
-      WHERE EXTRACT(YEAR FROM "Fecha") = EXTRACT(YEAR FROM CURRENT_DATE - INTERVAL '1 month')
-        AND EXTRACT(MONTH FROM "Fecha") = EXTRACT(MONTH FROM CURRENT_DATE - INTERVAL '1 month')
+      WHERE YEAR("Fecha") = YEAR(DATEADD(month, -1, GETDATE()))
+        AND MONTH("Fecha") = MONTH(DATEADD(month, -1, GETDATE()))
         AND "TipoDoc" IN ('B', 'F')
     `);
     
@@ -87,13 +87,13 @@ export const dashboardService = {
     
     const result = await query(`
       SELECT 
-        EXTRACT(MONTH FROM "Fecha") as mes,
-        TO_CHAR(DATE_TRUNC('month', "Fecha"), 'Month') as nombreMes,
+        MONTH("Fecha") as mes,
+        DATENAME(month, "Fecha") as nombreMes,
         COALESCE(SUM("pagado"), 0) as total,
         COUNT(*) as cantidad
       FROM DOCUMENTO
-      WHERE EXTRACT(YEAR FROM "Fecha") = $1 AND "TipoDoc" IN ('B', 'F')
-      GROUP BY EXTRACT(MONTH FROM "Fecha"), DATE_TRUNC('month', "Fecha")
+      WHERE YEAR("Fecha") = $1 AND "TipoDoc" IN ('B', 'F')
+      GROUP BY MONTH("Fecha"), DATENAME(month, "Fecha")
       ORDER BY mes
     `, [year]);
     
@@ -103,16 +103,16 @@ export const dashboardService = {
   async getVentasPorDia(limit: number = 7): Promise<any[]> {
     const result = await query(`
       SELECT 
-        "Fecha"::date as fecha,
-        TO_CHAR("Fecha"::date, 'DD/MM') as fechaStr,
+        CAST("Fecha" AS DATE) as fecha,
+        FORMAT("Fecha", 'dd/MM') as fechaStr,
         COALESCE(SUM("pagado"), 0) as total,
         COUNT(*) as cantidad
       FROM DOCUMENTO
-      WHERE "Fecha" >= CURRENT_DATE - $1::interval
+      WHERE "Fecha" >= DATEADD(day, -$1, CAST(GETDATE() AS DATE))
         AND "TipoDoc" IN ('B', 'F')
-      GROUP BY "Fecha"::date
+      GROUP BY CAST("Fecha" AS DATE), FORMAT("Fecha", 'dd/MM')
       ORDER BY fecha ASC
-    `, [`${limit - 1} days`]);
+    `, [limit - 1]);
     
     return result.rows;
   },
@@ -121,12 +121,12 @@ export const dashboardService = {
     const fechaConsulta = fecha || new Date().toISOString().split('T')[0];
     const result = await query(`
       SELECT 
-        EXTRACT(HOUR FROM "Fecha") as hora,
+        DATEPART(hour, "Fecha") as hora,
         COUNT(*) as cantidad,
         COALESCE(SUM("pagado"), 0) as total
       FROM DOCUMENTO
-      WHERE "Fecha"::date = $1 AND "TipoDoc" IN ('B', 'F')
-      GROUP BY EXTRACT(HOUR FROM "Fecha")
+      WHERE CAST("Fecha" AS DATE) = $1 AND "TipoDoc" IN ('B', 'F')
+      GROUP BY DATEPART(hour, "Fecha")
       ORDER BY hora
     `, [fechaConsulta]);
     
@@ -143,12 +143,12 @@ export const dashboardService = {
         COALESCE(AVG(d."pagado"), 0) as "TicketPromedio"
       FROM DOCUMENTO d
       LEFT JOIN PERSONAL p ON p."Personal" = d."Personal"
-      WHERE d."Fecha" >= DATE_TRUNC('month', CURRENT_DATE)
+      WHERE d."Fecha" >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1)
         AND d."TipoDoc" IN ('B', 'F')
         AND d."Personal" IS NOT NULL
       GROUP BY d."Personal", p."Nombre"
       ORDER BY "TotalVentas" DESC
-      LIMIT $1
+      OFFSET 0 ROWS FETCH NEXT $1 ROWS ONLY
     `, [limit]);
     
     return result.rows;
@@ -164,12 +164,12 @@ export const dashboardService = {
         COALESCE(SUM(d."pagado"), 0) as "TotalCompras"
       FROM DOCUMENTO d
       LEFT JOIN CLIENTE c ON c."Cliente" = d."Cliente"
-      WHERE d."Fecha" >= DATE_TRUNC('month', CURRENT_DATE)
+      WHERE d."Fecha" >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1)
         AND d."TipoDoc" IN ('B', 'F')
         AND d."Cliente" IS NOT NULL
       GROUP BY d."Cliente", c."Nombre", c."TipoCliente"
       ORDER BY "TotalCompras" DESC
-      LIMIT $1
+      OFFSET 0 ROWS FETCH NEXT $1 ROWS ONLY
     `, [limit]);
     
     return result.rows;
@@ -203,7 +203,7 @@ export const dashboardService = {
     
     queryText += ` GROUP BY dd."Producto", p."Descripcion", p."Marca"
                    ORDER BY "TotalVendido" DESC
-                   LIMIT $${paramIndex++}`;
+                   OFFSET 0 ROWS FETCH NEXT $${paramIndex++} ROWS ONLY`;
     params.push(limit);
     
     const result = await query(queryText, params);
@@ -212,9 +212,9 @@ export const dashboardService = {
 
   async getAlertasStock(): Promise<any[]> {
     const result = await query(`
-      SELECT "producto", "descripcion", "stock_actual", "stock_minimo", "faltante"
+      SELECT TOP 10 "producto", "descripcion", "stock_actual", "stock_minimo", "faltante"
       FROM Productos_StockCritico()
-      LIMIT 10
+      ORDER BY "faltante" DESC
     `);
     return result.rows;
   },
@@ -228,10 +228,10 @@ export const dashboardService = {
       LEFT JOIN DOCUMENTO d ON d."Documento" = c."Documento" AND d."TipoDoc" = c."TipoDoc"
       LEFT JOIN CLIENTE cl ON cl."Cliente" = d."Cliente"
       WHERE c."estado" = 'P' 
-        AND c."feVence" BETWEEN CURRENT_DATE AND CURRENT_DATE + $1::interval
+        AND c."feVence" BETWEEN CAST(GETDATE() AS DATE) AND DATEADD(day, $1, CAST(GETDATE() AS DATE))
       ORDER BY c."feVence" ASC
-      LIMIT 20
-    `, [`${dias} days`]);
+      OFFSET 0 ROWS FETCH NEXT 20 ROWS ONLY
+    `, [dias]);
     
     return result.rows;
   }

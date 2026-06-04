@@ -26,7 +26,9 @@ export const compraService = {
       const productosJson = JSON.stringify(data.productos);
       
       const result = await client.query(
-        `SELECT Registrar_Compra($1, $2, $3, $4, $5) as mensaje`,
+        `DECLARE @msg VARCHAR(255);
+         EXEC Registrar_Compra $1, $2, $3, $4, $5, @msg OUTPUT;
+         SELECT @msg as mensaje;`,
         [data.proveedor, data.documento, data.fecha, data.personal, productosJson]
       );
       
@@ -59,16 +61,19 @@ export const compraService = {
       params.push(fechaFin.length === 10 ? `${fechaFin}T23:59:59.999` : fechaFin);
     }
     
+    const limitIndex = paramIndex++;
+    const offsetIndex = paramIndex++;
+
     queryText += ` GROUP BY d."Documento", d."TipoDoc", d."Fecha", d."Proveedor", pr."RazonSocial", d."Personal", d."pagado"
                    ORDER BY d."Fecha" DESC
-                   LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
+                   OFFSET $${offsetIndex} ROWS FETCH NEXT $${limitIndex} ROWS ONLY`;
     
     params.push(limit, offset);
     
     const result = await query(queryText, params);
     
     // Contar total con los mismos filtros (sin limit/offset)
-    let countQuery = `SELECT COUNT(DISTINCT d."Documento" || d."TipoDoc") as count FROM DOCUMENTO d WHERE d."TipoDoc" = 'C'`;
+    let countQuery = `SELECT COUNT(DISTINCT d."Documento" + d."TipoDoc") as count FROM DOCUMENTO d WHERE d."TipoDoc" = 'C'`;
     const countParams: any[] = [];
     let countParamIndex = 1;
     if (fechaInicio) {
@@ -118,14 +123,14 @@ export const compraService = {
        FROM DOCUMENTO d
        LEFT JOIN DETADOC dd ON dd."Documento" = d."Documento" AND dd."TipoDoc" = d."TipoDoc"
        WHERE d."TipoDoc" = 'C' AND d."Proveedor" = $1
-       GROUP BY d."Documento", d."TipoDoc", d."Fecha", d."Proveedor", d."Personal", d."pagado"
+       GROUP BY d."Documento", d."TipoDoc", d."Fecha", d."Proveedor", d."Personal", d."pagado", d."Estado", d."DocRefer", d."IdTienda", d."FormaPago", d."Hora", d."Pedido"
        ORDER BY d."Fecha" DESC
-       LIMIT $2 OFFSET $3`,
+       OFFSET $3 ROWS FETCH NEXT $2 ROWS ONLY`,
       [proveedorId, limit, offset]
     );
     
     const countResult = await query(
-      `SELECT COUNT(*) FROM DOCUMENTO WHERE "TipoDoc" = 'C' AND "Proveedor" = $1`,
+      `SELECT COUNT(*) as count FROM DOCUMENTO WHERE "TipoDoc" = 'C' AND "Proveedor" = $1`,
       [proveedorId]
     );
     
