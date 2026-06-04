@@ -8,7 +8,10 @@ interface ThemeToggleProps {
 
 /**
  * Compact toggle: cycles light → dark → system → light.
- * Shows a sun / moon icon that reflects the *resolved* theme.
+ * El ícono representa el *modo seleccionado* (no el resuelto):
+ *   - sun  → modo claro forzado
+ *   - moon → modo oscuro forzado
+ *   - monitor con punto "auto" → modo sistema
  */
 export function ThemeToggle({ className }: ThemeToggleProps) {
   const { theme, resolved, setTheme } = useTheme();
@@ -19,7 +22,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
   const label =
     theme === 'system'
       ? `Tema del sistema (${resolved === 'dark' ? 'oscuro' : 'claro'}) — clic para claro`
-      : `Tema ${resolved === 'dark' ? 'oscuro' : 'claro'} — clic para ${next === 'system' ? 'sistema' : next === 'dark' ? 'oscuro' : 'claro'}`;
+      : `Tema ${theme === 'dark' ? 'oscuro' : 'claro'} — clic para ${next === 'system' ? 'sistema' : next === 'dark' ? 'oscuro' : 'claro'}`;
 
   return (
     <button
@@ -33,20 +36,26 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
         className,
       )}
     >
-      <SunIcon className="absolute h-3.5 w-3.5 transition-all duration-300 ease-out"
-        style={{
-          opacity: resolved === 'light' ? 1 : 0,
-          transform: resolved === 'light' ? 'rotate(0deg) scale(1)' : 'rotate(90deg) scale(0.5)',
-        }}
+      <SunIcon
+        className="absolute h-3.5 w-3.5 transition-all duration-300 ease-out"
+        style={iconStyle(theme === 'light')}
       />
-      <MoonIcon className="absolute h-3.5 w-3.5 transition-all duration-300 ease-out"
-        style={{
-          opacity: resolved === 'dark' ? 1 : 0,
-          transform: resolved === 'dark' ? 'rotate(0deg) scale(1)' : 'rotate(-90deg) scale(0.5)',
-        }}
+      <MoonIcon
+        className="absolute h-3.5 w-3.5 transition-all duration-300 ease-out"
+        style={iconStyle(theme === 'dark')}
+      />
+      <SystemIcon
+        className="absolute h-4 w-4 transition-all duration-300 ease-out"
+        style={iconStyle(theme === 'system')}
       />
     </button>
   );
+}
+
+function iconStyle(active: boolean): React.CSSProperties {
+  return active
+    ? { opacity: 1, transform: 'rotate(0deg) scale(1)' }
+    : { opacity: 0, transform: 'rotate(90deg) scale(0.5)' };
 }
 
 function SunIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
@@ -76,6 +85,34 @@ function MoonIcon({ className, style }: { className?: string; style?: React.CSSP
         strokeWidth="1.3"
         strokeLinejoin="round"
       />
+    </svg>
+  );
+}
+
+/**
+ * Monitor con base + un pequeño punto "auto" indicando que sigue
+ * la preferencia del sistema. Diseño plano, hereda `currentColor`.
+ */
+function SystemIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className={className} style={style} aria-hidden="true">
+      <rect
+        x="1.6"
+        y="2.6"
+        width="12.8"
+        height="8.4"
+        rx="0.6"
+        stroke="currentColor"
+        strokeWidth="1.2"
+      />
+      <path
+        d="M5.6 13.4h4.8M8 11v2.4"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="12.6" cy="4.6" r="0.9" fill="currentColor" />
     </svg>
   );
 }
