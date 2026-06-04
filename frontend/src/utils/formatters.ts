@@ -7,16 +7,14 @@ const NUM = new Intl.NumberFormat('es-PE', {
 
 const NUM_INT = new Intl.NumberFormat('es-PE');
 
-const PEN_FMT = new Intl.NumberFormat('es-PE', {
-  style: 'currency',
-  currency: 'PEN',
+/**
+ * Formateador numérico puro (sin `style: 'currency'`) — evita que
+ * `Intl` anteponga su propio símbolo y termine duplicándose con
+ * el prefijo elegido en preferencias.
+ */
+const MONEY_NUM = new Intl.NumberFormat('es-PE', {
   minimumFractionDigits: 2,
-});
-
-const USD_FMT = new Intl.NumberFormat('es-PE', {
-  style: 'currency',
-  currency: 'USD',
-  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
 });
 
 const DATE_FORMATS: Record<FormatoFecha, Intl.DateTimeFormatOptions> = {
@@ -41,15 +39,11 @@ function moneyPrefix(tipo: FormatoMoneda): string {
   }
 }
 
-function moneyFormatter(tipo: FormatoMoneda): Intl.NumberFormat {
-  return tipo === 'US$' ? USD_FMT : PEN_FMT;
-}
-
 export const fmt = {
   money: (n: number | null | undefined): string => {
     if (n == null) return '—';
     const { formatoMoneda } = usePreferencesStore.getState();
-    return `${moneyPrefix(formatoMoneda)}${moneyFormatter(formatoMoneda).format(n)}`;
+    return `${moneyPrefix(formatoMoneda)}${MONEY_NUM.format(n)}`;
   },
   number: (n: number | null | undefined): string =>
     n == null ? '—' : NUM.format(n),
