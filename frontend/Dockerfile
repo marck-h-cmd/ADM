@@ -20,20 +20,18 @@ COPY . .
 RUN pnpm run build
 
 # Stage 2: Production
-FROM nginx:alpine AS runner
+FROM node:20-alpine AS runner
 
-# Copy custom nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+WORKDIR /app
+
+# Install simple http server for static files
+RUN npm install -g serve
 
 # Copy built files from builder
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/dist ./dist
 
-# Expose port
-EXPOSE 80
+# Expose port (Render automatically detects the port)
+EXPOSE 3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --quiet --tries=1 --spider http://127.0.0.1/health || exit 1
-
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start server (-s for Single Page Application routing)
+CMD ["serve", "-s", "dist", "-l", "3000"]
