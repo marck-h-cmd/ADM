@@ -18,7 +18,7 @@ class Database {
       max: 20,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 5000,
-      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
+      ssl: { rejectUnauthorized: false }
     });
 
     // Manejar errores del pool
