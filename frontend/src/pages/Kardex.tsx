@@ -62,6 +62,7 @@ export default function Kardex() {
   const { movimientos, loading, error, stats, filtros, setFiltros } = useKardexProducto(
     producto?.Producto ?? null,
   );
+  const statsKardex = producto ? { ...stats, stockActual: producto.StockAc } : stats;
 
   const prodColumns: Column<Producto>[] = [
     {
@@ -278,8 +279,8 @@ export default function Kardex() {
               <p className="mark text-[0.55rem] text-[var(--color-ink-600)] truncate" title="Stock actual">
                 Stock actual
               </p>
-              <p className="num text-3xl text-[var(--color-ink-900)] mt-1.5 truncate" title={String(stats.stockActual)}>
-                {stats.stockActual}
+              <p className="num text-3xl text-[var(--color-ink-900)] mt-1.5 truncate" title={String(statsKardex.stockActual)}>
+                {statsKardex.stockActual}
               </p>
               <p className="mark text-[0.5rem] text-[var(--color-ink-600)] mt-1">
                 {producto.UniMed}
@@ -418,7 +419,7 @@ export default function Kardex() {
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() => exportKardexPDF({ producto, stats, filtros, items: movimientos })}
+                  onClick={() => exportKardexPDF({ producto, stats: statsKardex, filtros, items: movimientos })}
                   disabled={movimientos.length === 0}
                 >
                   Exportar PDF 📄
@@ -426,7 +427,7 @@ export default function Kardex() {
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() => exportKardexExcel({ producto, stats, filtros, items: movimientos })}
+                  onClick={() => exportKardexExcel({ producto, stats: statsKardex, filtros, items: movimientos })}
                   disabled={movimientos.length === 0}
                 >
                   Exportar Excel 📊

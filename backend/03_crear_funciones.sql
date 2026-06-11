@@ -84,40 +84,42 @@ RETURNS TABLE(
     Stock NUMERIC(9,2),
     Signo SMALLINT
 ) AS $$
-DECLARE
-    v_stock NUMERIC(9,2) := 0;
-    v_doc CHAR(9);
-    v_tdoc CHAR(1);
-    v_fecha TIMESTAMP;
-    v_can NUMERIC(9,2);
-    v_signo SMALLINT;
-    cur CURSOR FOR 
-        SELECT d."Documento", d."TipoDoc", d."Fecha", dd."Cantidad", COALESCE(td."Signo", 1)
-        FROM DOCUMENTO d 
-        INNER JOIN DETADOC dd ON d."Documento" = dd."Documento" AND dd."TipoDoc" = d."TipoDoc"
+BEGIN
+    RETURN QUERY
+    WITH movimientos AS (
+        SELECT
+            d."Documento",
+            d."TipoDoc",
+            d."Fecha",
+            dd."Cantidad",
+            COALESCE(td."Signo", 1)::SMALLINT AS signo
+        FROM DOCUMENTO d
+        INNER JOIN DETADOC dd ON d."Documento" = dd."Documento"
+                              AND d."TipoDoc" = dd."TipoDoc"
         LEFT JOIN TIPODOC td ON td."TipoDoc" = d."TipoDoc"
         WHERE dd."Producto" = p_idproducto
-        ORDER BY d."Fecha", COALESCE(td."Signo", 1) DESC;
-BEGIN
-    CREATE TEMP TABLE temp_kardex AS
-    SELECT d."Documento", d."TipoDoc", d."Fecha", dd."Cantidad", 0::NUMERIC(9,2) AS Stock, COALESCE(td."Signo", 1) as Signo
-    FROM DOCUMENTO d 
-    INNER JOIN DETADOC dd ON d."Documento" = dd."Documento" AND dd."TipoDoc" = d."TipoDoc"
-    LEFT JOIN TIPODOC td ON td."TipoDoc" = d."TipoDoc"
-    WHERE dd."Producto" = p_idproducto
-    ORDER BY d."Fecha", COALESCE(td."Signo", 1) DESC;
-
-    OPEN cur;
-    LOOP
-        FETCH cur INTO v_doc, v_tdoc, v_fecha, v_can, v_signo;
-        EXIT WHEN NOT FOUND;
-        v_stock := v_stock + (v_can * v_signo);
-        UPDATE temp_kardex SET Stock = v_stock WHERE "Documento" = v_doc AND "TipoDoc" = v_tdoc;
-    END LOOP;
-    CLOSE cur;
-
-    RETURN QUERY SELECT * FROM temp_kardex ORDER BY Fecha, Signo DESC;
-    DROP TABLE temp_kardex;
+    ), calculado AS (
+        SELECT
+            m."Documento",
+            m."TipoDoc",
+            m."Fecha",
+            m."Cantidad",
+            m.signo,
+            SUM(m."Cantidad" * m.signo) OVER (
+                ORDER BY m."Fecha", m.signo DESC, m."Documento", m."TipoDoc"
+                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+            )::NUMERIC(9,2) AS stock
+        FROM movimientos m
+    )
+    SELECT
+        c."Documento",
+        c."TipoDoc",
+        c."Fecha",
+        c."Cantidad",
+        c.stock,
+        c.signo
+    FROM calculado c
+    ORDER BY c."Fecha", c.signo DESC, c."Documento", c."TipoDoc";
 END;
 $$ LANGUAGE plpgsql;
 
@@ -317,84 +319,91 @@ RETURNS TABLE(
     referencia TEXT
 ) AS $$
 DECLARE
-    v_stock          NUMERIC(9,2) := 0;
-    v_saldo          NUMERIC(9,2) := 0;
-    v_doc            CHAR(9);
-    v_tdoc           CHAR(1);
-    v_fecha          TIMESTAMP;
-    v_cantidad       NUMERIC(9,2);
-    v_precio         NUMERIC(9,2);
-    v_signo          INTEGER;
-    v_referencia     TEXT;
-    v_stock_ini      NUMERIC(9,2);
-    v_saldo_ini      NUMERIC(9,2);
-    v_cant_saldo     NUMERIC(9,2);
-
-    cur CURSOR FOR 
-        SELECT d."Documento", d."TipoDoc", d."Fecha", 
-               dd."Cantidad", dd."PrecUnit", 
-               COALESCE(td."Signo", 1),
-               COALESCE(p."RazonSocial", td."Descripcion")::TEXT
-        FROM DOCUMENTO d 
-        INNER JOIN DETADOC dd ON d."Documento" = dd."Documento" 
+    -- Mantener el cálculo consistente aunque el reporte arranque en una fecha intermedia.
+BEGIN
+    RETURN QUERY
+    WITH base AS (
+        SELECT
+            COALESCE(SUM(dd."Cantidad" * COALESCE(td."Signo", 1)), 0)::NUMERIC(9,2) AS stock_base,
+            COALESCE(SUM(dd."Cantidad" * dd."PrecUnit" * (-COALESCE(td."Signo", 1))), 0)::NUMERIC(9,2) AS saldo_base
+        FROM DOCUMENTO d
+        INNER JOIN DETADOC dd ON d."Documento" = dd."Documento"
+                              AND d."TipoDoc" = dd."TipoDoc"
+        LEFT JOIN TIPODOC td ON td."TipoDoc" = d."TipoDoc"
+        WHERE dd."Producto" = p_idproducto
+          AND p_fecha_inicio IS NOT NULL
+          AND d."Fecha" < p_fecha_inicio
+    ), movimientos AS (
+        SELECT
+            d."Documento",
+            d."TipoDoc",
+            d."Fecha",
+            dd."Cantidad",
+            dd."PrecUnit",
+            COALESCE(td."Signo", 1)::INTEGER AS signo,
+            COALESCE(p."RazonSocial", td."Descripcion")::TEXT AS referencia,
+            (dd."Cantidad" * COALESCE(td."Signo", 1))::NUMERIC(9,2) AS delta_stock,
+            (dd."Cantidad" * dd."PrecUnit" * (-COALESCE(td."Signo", 1)))::NUMERIC(9,2) AS delta_saldo
+        FROM DOCUMENTO d
+        INNER JOIN DETADOC dd ON d."Documento" = dd."Documento"
                               AND d."TipoDoc" = dd."TipoDoc"
         LEFT JOIN TIPODOC td ON td."TipoDoc" = d."TipoDoc"
         LEFT JOIN PROVEEDOR p ON p."Proveedor" = d."Proveedor"
         WHERE dd."Producto" = p_idproducto
-            AND (p_fecha_inicio IS NULL OR d."Fecha" >= p_fecha_inicio)
-            AND (p_fecha_fin IS NULL OR d."Fecha" <= p_fecha_fin)
-        ORDER BY d."Fecha" ASC, COALESCE(td."Signo", 1) DESC;
-BEGIN
-    DROP TABLE IF EXISTS temp_kardex;
-    
-    CREATE TEMP TABLE temp_kardex (
-        doc         TEXT,
-        tipomov     TEXT,
-        fecha       TIMESTAMP,
-        cantidad    NUMERIC(9,2),
-        stock_ini   NUMERIC(9,2),
-        stock       NUMERIC(9,2),
-        saldo_ini   NUMERIC(9,2),
-        cant_saldo  NUMERIC(9,2),
-        saldo_acum  NUMERIC(9,2),
-        referencia  TEXT
-    );
-
-    OPEN cur;
-    LOOP
-        FETCH cur INTO v_doc, v_tdoc, v_fecha, v_cantidad, v_precio, v_signo, v_referencia;
-        EXIT WHEN NOT FOUND;
-
-        -- Guardar iniciales antes del movimiento
-        v_stock_ini  := v_stock;
-        v_saldo_ini  := v_saldo;
-
-        -- Calcular movimiento de saldo (compra resta, venta suma)
-        v_cant_saldo := v_cantidad * v_precio * (-v_signo);
-
-        -- Actualizar acumulados
-        v_stock := v_stock + (v_cantidad * v_signo);
-        v_saldo := v_saldo + v_cant_saldo;
-
-        INSERT INTO temp_kardex VALUES (
-            v_doc || '-' || v_tdoc,
-            CASE WHEN v_signo = 1 THEN '↑ Ingreso' ELSE '↓ Salida' END,
-            v_fecha,
-            v_cantidad,
-            v_stock_ini,
-            v_stock,
-            v_saldo_ini,
-            v_cant_saldo,
-            v_saldo,
-            v_referencia
-        );
-    END LOOP;
-    CLOSE cur;
-
-    RETURN QUERY
-    SELECT * FROM temp_kardex ORDER BY fecha ASC;
-
-    DROP TABLE IF EXISTS temp_kardex;
+          AND (p_fecha_inicio IS NULL OR d."Fecha" >= p_fecha_inicio)
+          AND (p_fecha_fin IS NULL OR d."Fecha" <= p_fecha_fin)
+    ), calculado AS (
+        SELECT
+            m."Documento",
+            m."TipoDoc",
+            m."Fecha",
+            m."Cantidad",
+            m."PrecUnit",
+            m.signo,
+            m.referencia,
+            b.stock_base
+              + COALESCE(
+                    SUM(m.delta_stock) OVER (
+                        ORDER BY m."Fecha", m.signo DESC, m."Documento", m."TipoDoc"
+                        ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
+                    ),
+                    0
+                ) AS stock_inicial,
+            b.stock_base
+              + SUM(m.delta_stock) OVER (
+                    ORDER BY m."Fecha", m.signo DESC, m."Documento", m."TipoDoc"
+                    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+                ) AS stock,
+            b.saldo_base
+              + COALESCE(
+                    SUM(m.delta_saldo) OVER (
+                        ORDER BY m."Fecha", m.signo DESC, m."Documento", m."TipoDoc"
+                        ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
+                    ),
+                    0
+                ) AS saldo_inicial,
+            m.delta_saldo AS cant_saldo,
+            b.saldo_base
+              + SUM(m.delta_saldo) OVER (
+                    ORDER BY m."Fecha", m.signo DESC, m."Documento", m."TipoDoc"
+                    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+                ) AS saldo_acumulado
+        FROM movimientos m
+        CROSS JOIN base b
+    )
+    SELECT
+        (c."Documento" || '-' || c."TipoDoc")::TEXT AS documento,
+        CASE WHEN c.signo = 1 THEN '↑ Ingreso' ELSE '↓ Salida' END AS tipomov,
+        c."Fecha",
+        c."Cantidad",
+        c.stock_inicial,
+        c.stock,
+        c.saldo_inicial,
+        c.cant_saldo,
+        c.saldo_acumulado,
+        c.referencia
+    FROM calculado c
+    ORDER BY c."Fecha" ASC, c.signo DESC, c."Documento", c."TipoDoc";
 END;
 $$ LANGUAGE plpgsql;
 
