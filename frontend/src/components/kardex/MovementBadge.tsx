@@ -2,7 +2,7 @@ import { cn } from '@/utils/helpers';
 import type { KardexItem } from '@/types/kardex.types';
 
 export function MovementBadge({ tipo }: { tipo: KardexItem['tipomov'] }) {
-  const isIngreso = tipo === 'INGRESO';
+  const isIngreso = tipo.includes('Ingreso');
   return (
     <span
       className={cn(
@@ -53,7 +53,7 @@ export function MovementCantidad({
   cantidad: number;
   size?: 'sm' | 'md';
 }) {
-  const isIngreso = tipo === 'INGRESO';
+  const isIngreso = tipo.includes('Ingreso');
   return (
     <span
       className={cn(

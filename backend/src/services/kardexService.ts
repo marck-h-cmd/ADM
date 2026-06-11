@@ -68,8 +68,8 @@ export const kardexService = {
       producto,
       movimientos,
       resumen: {
-        totalIngresos: movimientos.filter(m => m.tipomov === 'INGRESO').reduce((sum, m) => sum + m.cantidad, 0),
-        totalSalidas: movimientos.filter(m => m.tipomov === 'SALIDA').reduce((sum, m) => sum + m.cantidad, 0),
+        totalIngresos: movimientos.filter(m => m.tipomov.includes('Ingreso')).reduce((sum, m) => sum + m.cantidad, 0),
+        totalSalidas: movimientos.filter(m => m.tipomov.includes('Salida')).reduce((sum, m) => sum + m.cantidad, 0),
         stockFinal: movimientos.length > 0 ? movimientos[movimientos.length - 1].stock : 0
       }
     };

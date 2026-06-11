@@ -282,61 +282,92 @@ RETURNS TABLE(
     tipomov TEXT,
     fecha TIMESTAMP,
     cantidad NUMERIC(9,2),
-    stock NUMERIC(9,2)
+    stock_inicial NUMERIC(9,2),
+    stock NUMERIC(9,2),
+    saldo_inicial NUMERIC(9,2),
+    cant_saldo NUMERIC(9,2),
+    saldo_acumulado NUMERIC(9,2),
+    referencia TEXT
 ) AS $$
 DECLARE
-    v_stock NUMERIC(9,2) := 0;
-    v_doc CHAR(9);
-    v_tdoc CHAR(1);
-    v_fecha TIMESTAMP;
-    v_cantidad NUMERIC(9,2);
-    v_signo INTEGER;
+    v_stock          NUMERIC(9,2) := 0;
+    v_saldo          NUMERIC(9,2) := 0;
+    v_doc            CHAR(9);
+    v_tdoc           CHAR(1);
+    v_fecha          TIMESTAMP;
+    v_cantidad       NUMERIC(9,2);
+    v_precio         NUMERIC(9,2);
+    v_signo          INTEGER;
+    v_referencia     TEXT;
+    v_stock_ini      NUMERIC(9,2);
+    v_saldo_ini      NUMERIC(9,2);
+    v_cant_saldo     NUMERIC(9,2);
+
     cur CURSOR FOR 
-        SELECT d."Documento", d."TipoDoc", d."Fecha", dd."Cantidad", COALESCE(td."Signo", 1)
+        SELECT d."Documento", d."TipoDoc", d."Fecha", 
+               dd."Cantidad", dd."PrecUnit", 
+               COALESCE(td."Signo", 1),
+               COALESCE(p."RazonSocial", td."Descripcion")::TEXT
         FROM DOCUMENTO d 
-        INNER JOIN DETADOC dd ON d."Documento" = dd."Documento" AND d."TipoDoc" = dd."TipoDoc"
+        INNER JOIN DETADOC dd ON d."Documento" = dd."Documento" 
+                              AND d."TipoDoc" = dd."TipoDoc"
         LEFT JOIN TIPODOC td ON td."TipoDoc" = d."TipoDoc"
+        LEFT JOIN PROVEEDOR p ON p."Proveedor" = d."Proveedor"
         WHERE dd."Producto" = p_idproducto
             AND (p_fecha_inicio IS NULL OR d."Fecha" >= p_fecha_inicio)
             AND (p_fecha_fin IS NULL OR d."Fecha" <= p_fecha_fin)
         ORDER BY d."Fecha" ASC, COALESCE(td."Signo", 1) DESC;
 BEGIN
-    CREATE TEMP TABLE temp_kardex AS
-    SELECT 
-        d."Documento",
-        d."TipoDoc",
-        d."Fecha" as Fecha,
-        dd."Cantidad",
-        COALESCE(td."Signo", 1) as Signo,
-        0::NUMERIC(9,2) as Stock
-    FROM DOCUMENTO d 
-    INNER JOIN DETADOC dd ON d."Documento" = dd."Documento" AND d."TipoDoc" = dd."TipoDoc"
-    LEFT JOIN TIPODOC td ON td."TipoDoc" = d."TipoDoc"
-    WHERE dd."Producto" = p_idproducto
-        AND (p_fecha_inicio IS NULL OR d."Fecha" >= p_fecha_inicio)
-        AND (p_fecha_fin IS NULL OR d."Fecha" <= p_fecha_fin)
-    ORDER BY d."Fecha" ASC, COALESCE(td."Signo", 1) DESC;
+    DROP TABLE IF EXISTS temp_kardex;
+    
+    CREATE TEMP TABLE temp_kardex (
+        doc         TEXT,
+        tipomov     TEXT,
+        fecha       TIMESTAMP,
+        cantidad    NUMERIC(9,2),
+        stock_ini   NUMERIC(9,2),
+        stock       NUMERIC(9,2),
+        saldo_ini   NUMERIC(9,2),
+        cant_saldo  NUMERIC(9,2),
+        saldo_acum  NUMERIC(9,2),
+        referencia  TEXT
+    );
 
     OPEN cur;
     LOOP
-        FETCH cur INTO v_doc, v_tdoc, v_fecha, v_cantidad, v_signo;
+        FETCH cur INTO v_doc, v_tdoc, v_fecha, v_cantidad, v_precio, v_signo, v_referencia;
         EXIT WHEN NOT FOUND;
+
+        -- Guardar iniciales antes del movimiento
+        v_stock_ini  := v_stock;
+        v_saldo_ini  := v_saldo;
+
+        -- Calcular movimiento de saldo (compra resta, venta suma)
+        v_cant_saldo := v_cantidad * v_precio * (-v_signo);
+
+        -- Actualizar acumulados
         v_stock := v_stock + (v_cantidad * v_signo);
-        UPDATE temp_kardex SET Stock = v_stock WHERE "Documento" = v_doc AND "TipoDoc" = v_tdoc;
+        v_saldo := v_saldo + v_cant_saldo;
+
+        INSERT INTO temp_kardex VALUES (
+            v_doc || '-' || v_tdoc,
+            CASE WHEN v_signo = 1 THEN '↑ Ingreso' ELSE '↓ Salida' END,
+            v_fecha,
+            v_cantidad,
+            v_stock_ini,
+            v_stock,
+            v_saldo_ini,
+            v_cant_saldo,
+            v_saldo,
+            v_referencia
+        );
     END LOOP;
     CLOSE cur;
 
     RETURN QUERY
-    SELECT 
-        (k."Documento" || '-' || k."TipoDoc")::TEXT,
-        CASE WHEN k.Signo = 1 THEN 'INGRESO'::TEXT ELSE 'SALIDA'::TEXT END,
-        k.Fecha,
-        k."Cantidad",
-        k.Stock
-    FROM temp_kardex k
-    ORDER BY k.Fecha ASC;
-    
-    DROP TABLE temp_kardex;
+    SELECT * FROM temp_kardex ORDER BY fecha ASC;
+
+    DROP TABLE IF EXISTS temp_kardex;
 END;
 $$ LANGUAGE plpgsql;
 

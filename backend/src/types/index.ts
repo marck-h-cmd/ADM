@@ -54,13 +54,15 @@ export interface DetalleDocumento {
 
 export interface KardexItem {
   documento: string;
-  tipomov: 'INGRESO' | 'SALIDA';
+  tipomov: string;
   fecha: string;
   cantidad: number;
+  stock_inicial: number;
   stock: number;
-  documento_ref?: string;
-  proveedor?: string;
-  personal?: string;
+  saldo_inicial: number;
+  cant_saldo: number;
+  saldo_acumulado: number;
+  referencia: string;
 }
 
 export interface RegistrarVentaDTO {

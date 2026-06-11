@@ -158,17 +158,11 @@ export default function Kardex() {
     {
       key: 'fecha',
       header: 'Fecha',
-      width: '170px',
+      width: '130px',
       render: (m) => (
         <div>
           <p className="num text-sm text-[var(--color-ink-900)]">
             {fmt.date(m.fecha)}
-          </p>
-          <p className="mark text-[0.5rem] text-[var(--color-ink-600)]">
-            {new Date(m.fecha).toLocaleTimeString('es-PE', {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
           </p>
         </div>
       ),
@@ -176,7 +170,7 @@ export default function Kardex() {
     {
       key: 'doc',
       header: 'Documento',
-      width: '140px',
+      width: '130px',
       render: (m) => (
         <span className="num text-sm text-[var(--color-gold-500)] tracking-[0.1em]">
           {m.documento}
@@ -185,53 +179,74 @@ export default function Kardex() {
     },
     {
       key: 'tipo',
-      header: 'Movimiento',
-      width: '150px',
+      header: 'Mov.',
+      width: '120px',
       render: (m) => <MovementBadge tipo={m.tipomov} />,
     },
     {
-      key: 'cantidad',
-      header: 'Cantidad',
+      key: 'stock_inicial',
+      header: 'Stock Inicial',
       align: 'right',
-      width: '120px',
-      render: (m) => <MovementCantidad tipo={m.tipomov} cantidad={m.cantidad} />,
-    },
-    {
-      key: 'stock',
-      header: 'Stock resultante',
-      align: 'right',
-      width: '160px',
+      width: '110px',
       render: (m) => (
-        <p className="num text-base text-[var(--color-ink-900)]">{m.stock}</p>
+        <p className="num text-sm text-[var(--color-ink-600)]">{Math.round(m.stock_inicial)}</p>
       ),
     },
     {
-      key: 'ref',
-      header: 'Referencia',
+      key: 'cantidad',
+      header: 'Cant.',
+      align: 'right',
+      width: '90px',
+      render: (m) => <MovementCantidad tipo={m.tipomov} cantidad={Math.round(m.cantidad)} />,
+    },
+    {
+      key: 'stock',
+      header: 'Stock',
+      align: 'right',
+      width: '90px',
       render: (m) => (
-        <div className="space-y-0.5">
-          {m.proveedor && (
-            <p className="mark text-[0.5rem] text-[var(--color-ink-700)]">
-              <span className="text-[var(--color-ink-600)]">Proveedor ·</span>{' '}
-              {m.proveedor}
-            </p>
-          )}
-          {m.personal && (
-            <p className="mark text-[0.5rem] text-[var(--color-ink-700)]">
-              <span className="text-[var(--color-ink-600)]">Personal ·</span>{' '}
-              {m.personal}
-            </p>
-          )}
-          {m.documento_ref && (
-            <p className="mark text-[0.5rem] text-[var(--color-ink-700)]">
-              <span className="text-[var(--color-ink-600)]">Ref ·</span>{' '}
-              {m.documento_ref}
-            </p>
-          )}
-          {!m.proveedor && !m.personal && !m.documento_ref && (
-            <p className="mark text-[0.5rem] text-[var(--color-ink-600)]">—</p>
-          )}
-        </div>
+        <p className="num text-base text-[var(--color-ink-900)]">{Math.round(m.stock)}</p>
+      ),
+    },
+    {
+      key: 'saldo_inicial',
+      header: 'Saldo Inicial',
+      align: 'right',
+      width: '120px',
+      render: (m) => (
+        <p className="num text-sm text-[var(--color-ink-600)]">{fmt.money(m.saldo_inicial)}</p>
+      ),
+    },
+    {
+      key: 'cant_saldo',
+      header: 'Cant. Saldo (S/.)',
+      align: 'right',
+      width: '130px',
+      render: (m) => {
+        const valor = Math.abs(m.cant_saldo);
+        const isPositivo = m.cant_saldo >= 0;
+        return (
+          <p className={`num text-sm ${isPositivo ? 'text-[var(--color-jade-500)]' : 'text-[var(--color-cinnabar-500)]'}`}>
+            {isPositivo ? '+' : '−'}{fmt.money(valor)}
+          </p>
+        );
+      },
+    },
+    {
+      key: 'saldo_acumulado',
+      header: 'Saldo Acumulado',
+      align: 'right',
+      width: '130px',
+      render: (m) => (
+        <p className="num text-base text-[var(--color-ink-900)]">{fmt.money(m.saldo_acumulado)}</p>
+      ),
+    },
+    {
+      key: 'referencia',
+      header: 'Referencia',
+      width: '150px',
+      render: (m) => (
+        <p className="mark text-[0.5rem] text-[var(--color-ink-700)]">{m.referencia}</p>
       ),
     },
   ];

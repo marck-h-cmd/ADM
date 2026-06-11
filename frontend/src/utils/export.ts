@@ -139,17 +139,13 @@ export function exportKardexPDF({ producto, stats, filtros, items }: ExportKarde
   const headers = [['FECHA / HORA', 'DOCUMENTO', 'MOVIMIENTO', 'CANTIDAD', 'STOCK RESULT.', 'REFERENCIA']];
   
   const body = items.map(item => {
-    let ref = '';
-    if (item.proveedor) ref += `Prov: ${item.proveedor} `;
-    if (item.personal) ref += `Pers: ${item.personal} `;
-    if (item.documento_ref) ref += `Ref: ${item.documento_ref}`;
     return [
       new Date(item.fecha).toLocaleString('es-PE'),
       item.documento,
-      item.tipomov === 'INGRESO' ? 'INGRESO' : 'SALIDA',
-      item.tipomov === 'INGRESO' ? `+${item.cantidad}` : `-${item.cantidad}`,
+      item.tipomov.includes('Ingreso') ? 'INGRESO' : 'SALIDA',
+      item.tipomov.includes('Ingreso') ? `+${item.cantidad}` : `-${item.cantidad}`,
       item.stock.toString(),
-      ref || '—'
+      item.referencia || '—'
     ];
   });
 
@@ -351,21 +347,15 @@ export async function exportKardexExcel({ producto, stats, filtros, items }: Exp
   let currentRowNum = 18;
   items.forEach((item, index) => {
     const r = worksheet.getRow(currentRowNum);
-    
-    let ref = '';
-    if (item.proveedor) ref += `Proveedor: ${item.proveedor} | `;
-    if (item.personal) ref += `Personal: ${item.personal} | `;
-    if (item.documento_ref) ref += `Ref: ${item.documento_ref}`;
-    if (ref.endsWith(' | ')) ref = ref.slice(0, -3);
 
-    const cantidadSigned = item.tipomov === 'INGRESO' ? item.cantidad : -item.cantidad;
+    const cantidadSigned = item.tipomov.includes('Ingreso') ? item.cantidad : -item.cantidad;
 
     r.getCell(1).value = new Date(item.fecha).toLocaleString('es-PE');
     r.getCell(2).value = item.documento;
     r.getCell(3).value = item.tipomov;
     r.getCell(4).value = cantidadSigned;
     r.getCell(5).value = item.stock;
-    r.getCell(6).value = ref || '—';
+    r.getCell(6).value = item.referencia || '—';
 
     // Zebra striping color background
     const isEven = index % 2 === 0;
